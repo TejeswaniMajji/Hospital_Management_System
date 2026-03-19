@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%); color: #e0e0e0; font-family: system-ui; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .header { margin-bottom: 2rem; padding: 1.5rem; background: rgba(26, 31, 46, 0.5); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 2rem; color: #00d4ff; }
+        .back-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid #00d4ff; color: #00d4ff; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+        .back-btn:hover { background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: #0f1419; transform: translateY(-2px); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { padding: 1.5rem; background: rgba(0, 212, 255, 0.1); border: 2px solid rgba(0, 212, 255, 0.3); border-radius: 12px; text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #00d4ff; }
+        .stat-label { font-size: 0.9rem; color: #a0a0a0; }
+        .staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+        .staff-card { padding: 2rem; background: rgba(26, 31, 46, 0.8); border: 2px solid rgba(0, 212, 255, 0.2); border-radius: 15px; text-align: center; transition: all 0.3s ease; }
+        .staff-card:hover { transform: translateY(-5px); border-color: #00d4ff; box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2); }
+        .staff-avatar { width: 80px; height: 80px; background: linear-gradient(135deg, #00f5a0, #00d4ff); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2rem; color: #0f1419; }
+        .staff-name { font-size: 1.3rem; font-weight: 700; color: #00d4ff; margin-bottom: 0.3rem; }
+        .staff-position { font-size: 0.95rem; color: #00f5a0; margin-bottom: 0.5rem; }
+        .staff-department { display: inline-block; padding: 0.3rem 0.8rem; background: rgba(0, 212, 255, 0.2); border-radius: 20px; font-size: 0.8rem; color: #00d4ff; margin-bottom: 1rem; }
+        .staff-info { text-align: left; margin: 1rem 0; padding: 1rem; background: rgba(0, 212, 255, 0.05); border-left: 3px solid #00d4ff; }
+        .staff-info p { font-size: 0.85rem; color: #aaa; margin: 0.5rem 0; }
+        .staff-info i { width: 20px; color: #00d4ff; }
+        .staff-status { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .staff-status.active { background: rgba(0, 245, 160, 0.2); color: #00f5a0; }
+        .staff-status.inactive { background: rgba(255, 0, 110, 0.2); color: #ff006e; }
+        .staff-status.leave { background: rgba(255, 214, 10, 0.2); color: #ffd60a; }
+        .card-actions { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center; }
+        .btn { padding: 0.7rem 1.5rem; background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: #0f1419; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3); }
+        .btn.danger { background: linear-gradient(135deg, #ff006e, #cc0052); }
+        .btn.success { background: linear-gradient(135deg, #00f5a0, #00c980); }
+        .btn.secondary { background: transparent; border: 2px solid #00d4ff; color: #00d4ff; }
+        .add-btn { background: linear-gradient(135deg, #00f5a0, #00c980); margin-bottom: 2rem; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: linear-gradient(135deg, rgba(15, 20, 25, 0.98), rgba(26, 31, 46, 0.98)); border: 2px solid rgba(0, 212, 255, 0.3); border-radius: 15px; padding: 2rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(0, 212, 255, 0.2); }
+        .modal-header h2 { color: #00d4ff; font-size: 1.5rem; }
+        .modal-close { background: none; border: none; color: #00d4ff; font-size: 2rem; cursor: pointer; transition: transform 0.3s; }
+        .modal-close:hover { transform: rotate(90deg); }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #00d4ff; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.8rem; background: rgba(0, 212, 255, 0.05); border: 2px solid rgba(0, 212, 255, 0.2); color: #e0e0e0; border-radius: 8px; font-size: 1rem; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #00d4ff; background: rgba(0, 212, 255, 0.1); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .modal-footer { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end; }
+        .detail-row { display: flex; padding: 0.8rem 0; border-bottom: 1px solid rgba(0, 212, 255, 0.1); }
+        .detail-label { color: #00d4ff; font-weight: 600; min-width: 140px; }
+        .detail-value { color: #ccc; flex: 1; }
+        .loading { text-align: center; padding: 3rem; color: #aaa; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-user-tie"></i> Staff Management</h1>
+            <a href="/hospital/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalStaff">0</div>
+                <div class="stat-label">Total Staff</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeStaff">0</div>
+                <div class="stat-label">Active Staff</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="departments">0</div>
+                <div class="stat-label">Departments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="onLeave">0</div>
+                <div class="stat-label">On Leave</div>
+            </div>
+        </div>
+
+        <button class="btn add-btn" onclick="openAddModal()"><i class="fas fa-plus"></i> Add New Staff</button>
+
+        <div class="staff-grid" id="staffGrid">
+            <div class="loading"><i class="fas fa-spinner" style="animation: spin 1s linear infinite;"></i> Loading staff...</div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Staff Modal -->
+    <div class="modal" id="staffModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fas fa-user-plus"></i> Add New Staff</h2>
+                <button class="modal-close" onclick="closeStaffModal()">&times;</button>
+            </div>
+            <form id="staffForm">
+                <input type="hidden" id="staffId" name="staffId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName"><i class="fas fa-user"></i> First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName"><i class="fas fa-user"></i> Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="position"><i class="fas fa-briefcase"></i> Position *</label>
+                        <select id="position" name="position" required>
+                            <option value="">Select Position</option>
+                            <option value="Nurse">Nurse</option>
+                            <option value="Lab Technician">Lab Technician</option>
+                            <option value="Receptionist">Receptionist</option>
+                            <option value="Admin Assistant">Admin Assistant</option>
+                            <option value="Pharmacist">Pharmacist</option>
+                            <option value="Radiologist">Radiologist</option>
+                            <option value="Security Guard">Security Guard</option>
+                            <option value="Cleaner">Cleaner</option>
+                            <option value="Driver">Driver</option>
+                            <option value="Accountant">Accountant</option>
+                            <option value="HR Manager">HR Manager</option>
+                            <option value="IT Support">IT Support</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="department"><i class="fas fa-building"></i> Department *</label>
+                        <select id="department" name="department" required>
+                            <option value="">Select Department</option>
+                            <option value="ICU">ICU</option>
+                            <option value="Emergency">Emergency</option>
+                            <option value="Laboratory">Laboratory</option>
+                            <option value="Pharmacy">Pharmacy</option>
+                            <option value="Radiology">Radiology</option>
+                            <option value="Administration">Administration</option>
+                            <option value="Reception">Reception</option>
+                            <option value="Security">Security</option>
+                            <option value="Housekeeping">Housekeeping</option>
+                            <option value="IT">IT</option>
+                            <option value="Finance">Finance</option>
+                            <option value="HR">HR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneNumber"><i class="fas fa-phone"></i> Phone Number *</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
+                    <textarea id="address" name="address" rows="2"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="salary"><i class="fas fa-dollar-sign"></i> Salary</label>
+                        <input type="text" id="salary" name="salary" placeholder="e.g., $3,500/month">
+                    </div>
+                    <div class="form-group">
+                        <label for="status"><i class="fas fa-toggle-on"></i> Status</label>
+                        <select id="status" name="status">
+                            <option value="Active">Active</option>
+                            <option value="On Leave">On Leave</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn secondary" onclick="closeStaffModal()"><i class="fas fa-times"></i> Cancel</button>
+                    <button type="submit" class="btn success"><i class="fas fa-save"></i> Save Staff</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Staff Modal -->
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user"></i> Staff Details</h2>
+                <button class="modal-close" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div id="viewContent">
+                <!-- Staff details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn secondary" onclick="closeViewModal()"><i class="fas fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allStaff = [];
+        let editMode = false;
+
+        // Load staff on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStaff();
+        });
+
+        // Load all staff from API
+        function loadStaff() {
+            fetch('/hospital/api/staff')
+                .then(response => response.json())
+                .then(data => {
+                    allStaff = data;
+                    displayStaff(data);
+                    updateStats(data);
+                })
+                .catch(error => {
+                    console.error('Error loading staff:', error);
+                    document.getElementById('staffGrid').innerHTML = '<div class="loading">Error loading staff data</div>';
+                });
+        }
+
+        // Display staff cards
+        function displayStaff(staffList) {
+            const grid = document.getElementById('staffGrid');
+            
+            if (staffList.length === 0) {
+                grid.innerHTML = '<div class="loading">No staff found. Add your first staff member!</div>';
+                return;
+            }
+
+            grid.innerHTML = staffList.map(staff => `
+                <div class="staff-card">
+                    <div class="staff-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3 class="staff-name">${staff.firstName} ${staff.lastName}</h3>
+                    <p class="staff-position">${staff.position}</p>
+                    <span class="staff-department">${staff.department}</span>
+                    <div class="staff-info">
+                        <p><i class="fas fa-envelope"></i> ${staff.email}</p>
+                        <p><i class="fas fa-phone"></i> ${staff.phoneNumber}</p>
+                        ${staff.salary ? `<p><i class="fas fa-dollar-sign"></i> ${staff.salary}</p>` : ''}
+                    </div>
+                    <span class="staff-status ${getStatusClass(staff.status)}">${staff.status || 'Active'}</span>
+                    <div class="card-actions">
+                        <button class="btn secondary" onclick="viewStaff(${staff.staffId})"><i class="fas fa-eye"></i></button>
+                        <button class="btn" onclick="editStaff(${staff.staffId})"><i class="fas fa-edit"></i></button>
+                        <button class="btn danger" onclick="deleteStaff(${staff.staffId})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get status class for styling
+        function getStatusClass(status) {
+            if (!status) return 'active';
+            switch(status.toLowerCase()) {
+                case 'active': return 'active';
+                case 'on leave': return 'leave';
+                case 'inactive': return 'inactive';
+                default: return 'active';
+            }
+        }
+
+        // Update statistics
+        function updateStats(staffList) {
+            document.getElementById('totalStaff').textContent = staffList.length;
+            document.getElementById('activeStaff').textContent = staffList.filter(s => s.status === 'Active').length;
+            document.getElementById('onLeave').textContent = staffList.filter(s => s.status === 'On Leave').length;
+            const departments = [...new Set(staffList.map(s => s.department))];
+            document.getElementById('departments').textContent = departments.length;
+        }
+
+        // Open add modal
+        function openAddModal() {
+            editMode = false;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add New Staff';
+            document.getElementById('staffForm').reset();
+            document.getElementById('staffId').value = '';
+            document.getElementById('staffModal').classList.add('show');
+        }
+
+        // Edit staff
+        function editStaff(id) {
+            const staff = allStaff.find(s => s.staffId === id);
+            if (!staff) return;
+
+            editMode = true;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Staff';
+            document.getElementById('staffId').value = staff.staffId;
+            document.getElementById('firstName').value = staff.firstName;
+            document.getElementById('lastName').value = staff.lastName;
+            document.getElementById('position').value = staff.position;
+            document.getElementById('department').value = staff.department;
+            document.getElementById('email').value = staff.email;
+            document.getElementById('phoneNumber').value = staff.phoneNumber;
+            document.getElementById('address').value = staff.address || '';
+            document.getElementById('salary').value = staff.salary || '';
+            document.getElementById('status').value = staff.status || 'Active';
+            document.getElementById('staffModal').classList.add('show');
+        }
+
+        // View staff details
+        function viewStaff(id) {
+            const staff = allStaff.find(s => s.staffId === id);
+            if (!staff) return;
+
+            const joinDate = staff.joinDate ? new Date(staff.joinDate).toLocaleDateString() : 'N/A';
+            
+            document.getElementById('viewContent').innerHTML = `
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <div class="staff-avatar" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3 style="color: #00d4ff; margin-top: 1rem;">${staff.firstName} ${staff.lastName}</h3>
+                    <p style="color: #00f5a0;">${staff.position}</p>
+                </div>
+                <div class="detail-row"><span class="detail-label">Staff ID:</span><span class="detail-value">#S${String(staff.staffId).padStart(3, '0')}</span></div>
+                <div class="detail-row"><span class="detail-label">Department:</span><span class="detail-value">${staff.department}</span></div>
+                <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${staff.email}</span></div>
+                <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">${staff.phoneNumber}</span></div>
+                <div class="detail-row"><span class="detail-label">Address:</span><span class="detail-value">${staff.address || 'Not provided'}</span></div>
+                <div class="detail-row"><span class="detail-label">Salary:</span><span class="detail-value">${staff.salary || 'Not specified'}</span></div>
+                <div class="detail-row"><span class="detail-label">Join Date:</span><span class="detail-value">${joinDate}</span></div>
+                <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value"><span class="staff-status ${getStatusClass(staff.status)}">${staff.status || 'Active'}</span></span></div>
+            `;
+            document.getElementById('viewModal').classList.add('show');
+        }
+
+        // Delete staff
+        function deleteStaff(id) {
+            if (!confirm('Are you sure you want to delete this staff member?')) return;
+
+            fetch(`/hospital/api/staff/delete/${id}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        loadStaff();
+                        alert('Staff deleted successfully!');
+                    } else {
+                        alert('Error deleting staff');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting staff');
+                });
+        }
+
+        // Close modals
+        function closeStaffModal() {
+            document.getElementById('staffModal').classList.remove('show');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('show');
+        }
+
+        // Form submission
+        document.getElementById('staffForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const staffData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                position: document.getElementById('position').value,
+                department: document.getElementById('department').value,
+                email: document.getElementById('email').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                address: document.getElementById('address').value,
+                salary: document.getElementById('salary').value,
+                status: document.getElementById('status').value
+            };
+
+            const staffId = document.getElementById('staffId').value;
+            if (staffId) {
+                staffData.staffId = parseInt(staffId);
+            }
+
+            const url = editMode ? '/hospital/api/staff/update' : '/hospital/api/staff/save';
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(staffData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    closeStaffModal();
+                    loadStaff();
+                    alert(editMode ? 'Staff updated successfully!' : 'Staff added successfully!');
+                } else {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving staff: ' + error.message);
+            });
+        });
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>

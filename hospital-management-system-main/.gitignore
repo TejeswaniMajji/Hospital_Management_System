@@ -1,0 +1,120 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.flattened-pom.xml
+*.releaseBackup
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.class
+*.jar
+*.war
+
+# Spring Boot
+.spring/
+.springBeans
+
+# Gradle
+.gradle
+build/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.c9/
+*.launch
+.cache-main
+.scala_dependencies
+.worksheet
+
+# Intellij
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may want to be tracked by git if you want to share
+# the launch configuration with team members. However, if you personalize
+# your launch configuration, you may want to add .vscode to your .gitignore so
+# you don't accidentally commit your personal settings.
+# .vscode/
+
+# Visual Studio Code
+.code-workspace
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+
+# Node
+node_modules/
+npm-debug.log
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Application specific
+*.log
+logs/
+temp/
+tmp/
+*.out
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# JVM crash artifacts
+hs_err_pid*
+replay_pid*
+
+# Test and coverage reports
+surefire-reports/
+failsafe-reports/
+coverage/
+
+# Windows
+Desktop.ini
+$RECYCLE.BIN/
+
+# Accidental local user/home directory dump
+source/Users/

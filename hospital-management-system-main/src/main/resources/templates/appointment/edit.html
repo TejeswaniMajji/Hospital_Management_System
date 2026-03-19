@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Appointment - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+        .form-card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.9) 0%, rgba(26, 31, 46, 0.9) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+        .form-card h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+        }
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        button {
+            flex: 1;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: var(--gradient-blue);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        .btn-cancel {
+            background: transparent;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--primary);
+        }
+        .btn-cancel:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-card">
+            <h1><i class="fas fa-calendar-edit"></i> Edit Appointment</h1>
+            
+            <form action="/hospital/appointment/update" method="POST" th:object="${appointment}">
+                <input type="hidden" name="_csrf" th:value="${_csrf?.token}">
+                <input type="hidden" name="appointmentId" th:value="*{appointmentId}">
+                
+                <div class="form-group">
+                    <label for="patientId">Patient *</label>
+                    <select id="patientId" name="patientId" required>
+                        <option th:each="patient : ${patients}" th:value="${patient.patientId}" th:text="${patient.firstName + ' ' + patient.lastName}" th:selected="${appointment.patient?.patientId == patient.patientId}"></option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="doctorId">Doctor *</label>
+                    <select id="doctorId" name="doctorId" required>
+                        <option th:each="doctor : ${doctors}" th:value="${doctor.doctorId}" th:text="${doctor.firstName + ' ' + doctor.lastName}" th:selected="${appointment.doctor?.doctorId == doctor.doctorId}"></option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="appointmentDateTime">Date & Time *</label>
+                    <input type="datetime-local" id="appointmentDateTime" name="appointmentDateTime" th:value="*{appointmentDateTime}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="reason">Reason</label>
+                    <textarea id="reason" name="reason" rows="3" th:text="*{reason}"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" rows="2" th:text="*{notes}"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="priority">Priority</label>
+                    <select id="priority" name="priority">
+                        <option value="Normal" th:selected="*{priority == 'Normal'}">Normal</option>
+                        <option value="High" th:selected="*{priority == 'High'}">High</option>
+                        <option value="Low" th:selected="*{priority == 'Low'}">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option value="Scheduled" th:selected="*{status == 'Scheduled'}">Scheduled</option>
+                        <option value="Completed" th:selected="*{status == 'Completed'}">Completed</option>
+                        <option value="Cancelled" th:selected="*{status == 'Cancelled'}">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit"><i class="fas fa-save"></i> Update Appointment</button>
+                    <a th:href="@{/appointment/list}" class="btn-cancel"><i class="fas fa-times"></i> Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

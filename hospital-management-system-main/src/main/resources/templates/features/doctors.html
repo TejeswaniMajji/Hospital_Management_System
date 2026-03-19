@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%); color: #e0e0e0; font-family: system-ui; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .header { margin-bottom: 2rem; padding: 1.5rem; background: rgba(26, 31, 46, 0.5); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 12px; }
+        .header h1 { font-size: 2rem; color: #00d4ff; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { padding: 1.5rem; background: rgba(0, 212, 255, 0.1); border: 2px solid rgba(0, 212, 255, 0.3); border-radius: 12px; text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #00d4ff; }
+        .stat-label { font-size: 0.9rem; color: #a0a0a0; }
+        .doctor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
+        .doctor-card { padding: 2rem; background: rgba(26, 31, 46, 0.8); border: 2px solid rgba(0, 212, 255, 0.2); border-radius: 15px; text-align: center; }
+        .doctor-avatar { width: 80px; height: 80px; background: linear-gradient(135deg, #00d4ff, #00f5a0); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2rem; color: #0f1419; }
+        .doctor-name { font-size: 1.3rem; font-weight: 700; color: #00d4ff; margin-bottom: 0.5rem; }
+        .doctor-specialization { font-size: 0.9rem; color: #00f5a0; margin-bottom: 1rem; }
+        .doctor-info { text-align: left; margin: 1rem 0; padding: 1rem; background: rgba(0, 212, 255, 0.05); border-left: 3px solid #00d4ff; }
+        .doctor-info p { font-size: 0.85rem; color: #aaa; margin: 0.5rem 0; }
+        .btn { padding: 0.7rem 1.5rem; background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: #0f1419; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn:hover { transform: translateY(-3px); }
+        .btn.danger { background: linear-gradient(135deg, #ff006e, #cc0052); }
+        .add-btn { background: linear-gradient(135deg, #00f5a0, #00c980); margin-bottom: 2rem; width: 200px; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: rgba(15, 20, 25, 0.98); border: 2px solid rgba(0, 212, 255, 0.3); border-radius: 15px; padding: 2rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+        .modal-header h2 { color: #00d4ff; }
+        .modal-close { background: none; border: none; color: #00d4ff; font-size: 2rem; cursor: pointer; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #00d4ff; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 0.8rem; background: rgba(0, 212, 255, 0.05); border: 2px solid rgba(0, 212, 255, 0.2); color: #e0e0e0; border-radius: 8px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #00d4ff; background: rgba(0, 212, 255, 0.1); }
+        .modal-footer { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end; }
+        .detail-row { display: flex; padding: 0.8rem; border-bottom: 1px solid rgba(0, 212, 255, 0.1); }
+        .detail-label { color: #00d4ff; font-weight: 600; min-width: 150px; }
+        .detail-value { color: #ccc; flex: 1; }
+        .loading { text-align: center; padding: 2rem; color: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h1><i class="fas fa-user-md"></i> Doctor Management</h1>
+            <a href="/hospital/" class="back-btn" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid #00d4ff; color: #00d4ff; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalDoctors">0</div>
+                <div class="stat-label">Total Doctors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="specializations">0</div>
+                <div class="stat-label">Specializations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalAppointments">0</div>
+                <div class="stat-label">Total Appointments</div>
+            </div>
+        </div>
+
+        <button class="btn add-btn" onclick="openAddModal()"><i class="fas fa-plus"></i> Add New Doctor</button>
+
+        <div class="doctor-grid" id="doctorGrid">
+            <div class="loading"><i class="fas fa-spinner" style="animation: spin 1s linear infinite;"></i> Loading...</div>
+        </div>
+    </div>
+
+    <div class="modal" id="doctorModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fas fa-user-plus"></i> Add New Doctor</h2>
+                <button class="modal-close" onclick="closeDoctorModal()">×</button>
+            </div>
+            <form id="doctorForm" method="POST">
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+                <div class="form-group">
+                    <label for="specialization">Specialization *</label>
+                    <select id="specialization" name="specialization" required>
+                        <option value="">Select Specialization</option>
+                        <option value="Cardiology">Cardiology</option>
+                        <option value="Neurology">Neurology</option>
+                        <option value="Orthopedics">Orthopedics</option>
+                        <option value="Pediatrics">Pediatrics</option>
+                        <option value="General Practice">General Practice</option>
+                        <option value="Surgery">Surgery</option>
+                        <option value="Dermatology">Dermatology</option>
+                        <option value="Gastroenterology">Gastroenterology</option>
+                        <option value="Oncology">Oncology</option>
+                        <option value="Urology">Urology</option>
+                        <option value="Pulmonology">Pulmonology</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber">Phone *</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="licenseNumber">License Number *</label>
+                    <input type="text" id="licenseNumber" name="licenseNumber" required>
+                </div>
+                <div class="form-group">
+                    <label for="yearsOfExperience">Years of Experience</label>
+                    <input type="text" id="yearsOfExperience" name="yearsOfExperience">
+                </div>
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <input type="text" id="department" name="department">
+                </div>
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" name="address">
+                </div>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city">
+                </div>
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <input type="text" id="state" name="state">
+                </div>
+                <div class="form-group">
+                    <label for="zipCode">Zip Code</label>
+                    <input type="text" id="zipCode" name="zipCode">
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="submitBtn" class="btn"><i class="fas fa-save"></i> Save</button>
+                    <button type="button" class="btn" style="background: #666;" onclick="closeDoctorModal()"><i class="fas fa-times"></i> Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-stethoscope"></i> Doctor Details</h2>
+                <button class="modal-close" onclick="closeViewModal()">×</button>
+            </div>
+            <div id="viewContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="switchToEditModal()"><i class="fas fa-edit"></i> Edit</button>
+                <button type="button" class="btn" style="background: #666;" onclick="closeViewModal()"><i class="fas fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+
+    <script>
+        let doctors = [];
+        let currentEditingDoctor = null;
+
+        function loadDoctors() {
+            console.log('Loading doctors...');
+            fetch('/hospital/api/doctors')
+                .then(r => r.json())
+                .then(data => {
+                    doctors = data;
+                    renderDoctors();
+                    updateStats();
+                })
+                .catch(e => {
+                    console.error('Error:', e);
+                    document.getElementById('doctorGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#ff006e;">Error loading doctors</div>';
+                });
+        }
+
+        function renderDoctors() {
+            const grid = document.getElementById('doctorGrid');
+            grid.innerHTML = '';
+            if (!doctors || doctors.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#aaa;">No doctors</div>';
+                return;
+            }
+            doctors.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = 'doctor-card';
+                card.innerHTML = `
+                    <div class="doctor-avatar"><i class="fas fa-user-md"></i></div>
+                    <div class="doctor-name">${doc.firstName} ${doc.lastName}</div>
+                    <div class="doctor-specialization">${doc.specialization}</div>
+                    <div class="doctor-info">
+                        <p><i class="fas fa-phone"></i> ${doc.phoneNumber}</p>
+                        <p><i class="fas fa-envelope"></i> ${doc.email}</p>
+                        <p><i class="fas fa-award"></i> ${doc.yearsOfExperience || 'N/A'} years</p>
+                    </div>
+                    <div style="display:flex;gap:0.8rem;margin-top:1rem;justify-content:center;">
+                        <button class="btn" onclick="openViewModal(${doc.doctorId})" style="flex:1;"><i class="fas fa-eye"></i> View</button>
+                        <button class="btn" onclick="openEditModal(${doc.doctorId})" style="flex:1;"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn danger" onclick="deleteDoctor(${doc.doctorId})" style="flex:1;"><i class="fas fa-trash"></i> Delete</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('totalDoctors').textContent = doctors.length;
+            const specs = new Set(doctors.map(d => d.specialization));
+            document.getElementById('specializations').textContent = specs.size;
+            document.getElementById('totalAppointments').textContent = doctors.length * 8;
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add New Doctor';
+            document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save"></i> Save';
+            document.getElementById('doctorForm').reset();
+            document.getElementById('doctorForm').action = '/hospital/api/doctors/save';
+            document.getElementById('doctorModal').classList.add('show');
+        }
+
+        function openEditModal(id) {
+            const doc = doctors.find(d => d.doctorId === id);
+            if (doc) {
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Doctor';
+                document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save"></i> Update';
+                document.getElementById('firstName').value = doc.firstName;
+                document.getElementById('lastName').value = doc.lastName;
+                document.getElementById('specialization').value = doc.specialization;
+                document.getElementById('phoneNumber').value = doc.phoneNumber;
+                document.getElementById('email').value = doc.email;
+                document.getElementById('licenseNumber').value = doc.licenseNumber;
+                document.getElementById('yearsOfExperience').value = doc.yearsOfExperience || '';
+                document.getElementById('department').value = doc.department || '';
+                document.getElementById('address').value = doc.address || '';
+                document.getElementById('city').value = doc.city || '';
+                document.getElementById('state').value = doc.state || '';
+                document.getElementById('zipCode').value = doc.zipCode || '';
+                document.getElementById('doctorForm').action = '/hospital/api/doctors/update/' + id;
+                document.getElementById('doctorModal').classList.add('show');
+            }
+        }
+
+        function openViewModal(id) {
+            const doc = doctors.find(d => d.doctorId === id);
+            if (doc) {
+                let html = `
+                    <div class="detail-row"><div class="detail-label">ID:</div><div class="detail-value">${doc.doctorId}</div></div>
+                    <div class="detail-row"><div class="detail-label">Name:</div><div class="detail-value">${doc.firstName} ${doc.lastName}</div></div>
+                    <div class="detail-row"><div class="detail-label">Specialization:</div><div class="detail-value">${doc.specialization}</div></div>
+                    <div class="detail-row"><div class="detail-label">Phone:</div><div class="detail-value">${doc.phoneNumber}</div></div>
+                    <div class="detail-row"><div class="detail-label">Email:</div><div class="detail-value">${doc.email}</div></div>
+                    <div class="detail-row"><div class="detail-label">License:</div><div class="detail-value">${doc.licenseNumber}</div></div>
+                    <div class="detail-row"><div class="detail-label">Experience:</div><div class="detail-value">${doc.yearsOfExperience || 'N/A'} years</div></div>
+                    <div class="detail-row"><div class="detail-label">Department:</div><div class="detail-value">${doc.department || 'N/A'}</div></div>
+                    <div class="detail-row"><div class="detail-label">Address:</div><div class="detail-value">${doc.address || 'N/A'}</div></div>
+                `;
+                document.getElementById('viewContent').innerHTML = html;
+                document.getElementById('viewContent').dataset.docId = id;
+                document.getElementById('viewModal').classList.add('show');
+            }
+        }
+
+        function switchToEditModal() {
+            const id = parseInt(document.getElementById('viewContent').dataset.docId);
+            closeViewModal();
+            openEditModal(id);
+        }
+
+        function closeDoctorModal() { document.getElementById('doctorModal').classList.remove('show'); }
+        function closeViewModal() { document.getElementById('viewModal').classList.remove('show'); }
+
+        function deleteDoctor(id) {
+            if (confirm('Delete this doctor?')) {
+                fetch(`/hospital/api/doctors/delete/${id}`, { method: 'DELETE' })
+                    .then(() => loadDoctors())
+                    .catch(e => alert('Error: ' + e));
+            }
+        }
+
+        document.getElementById('doctorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            fetch(this.action, { method: 'POST', body: new FormData(this) })
+                .then(() => { closeDoctorModal(); loadDoctors(); })
+                .catch(e => alert('Error: ' + e));
+        });
+
+        window.onclick = function(e) {
+            if (e.target.id === 'doctorModal') closeDoctorModal();
+            if (e.target.id === 'viewModal') closeViewModal();
+        }
+
+        loadDoctors();
+    </script>
+</body>
+</html>

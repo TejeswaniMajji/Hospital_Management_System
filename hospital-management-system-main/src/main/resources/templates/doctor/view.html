@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Details - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --success: #00f5a0;
+            --danger: #ff006e;
+            --dark: #0f1419;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated background orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -10%;
+            right: -5%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 245, 160, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -10%;
+            left: -5%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob-reverse 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        @keyframes float-blob {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            33% { transform: translateY(-60px) translateX(40px); }
+            66% { transform: translateY(40px) translateX(-40px); }
+        }
+
+        @keyframes float-blob-reverse {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            33% { transform: translateY(60px) translateX(-40px); }
+            66% { transform: translateY(-40px) translateX(40px); }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+        .hidden { display: none; }
+        .edit-mode .view-section { display: none; }
+        .edit-mode .edit-section { display: block; }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .back-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .back-btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        .back-btn:active::before {
+            animation: ripple 0.6s ease-out;
+        }
+        @keyframes ripple {
+            to {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
+            }
+        }
+        .details-card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.95) 0%, rgba(26, 31, 46, 0.95) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .details-card h1 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .detail-value {
+            color: #ccc;
+        }
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .btn:hover {
+            background: var(--gradient-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        .btn:active::before {
+            animation: ripple 0.6s ease-out;
+        }
+        .btn.danger {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        .btn.danger:hover {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 5px 20px rgba(255, 0, 110, 0.3);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+        button {
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: var(--gradient-blue);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        button:active::before {
+            animation: ripple 0.6s ease-out;
+        }
+        .btn-cancel {
+            background: transparent;
+            color: var(--primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--primary);
+        }
+        .btn-cancel:hover {
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.2);
+        }
+        .edit-section { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/hospital/doctor/list" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+
+        <div class="details-card" th:if="${doctor}" id="doctorContainer">
+            <!-- VIEW MODE -->
+            <div class="view-section">
+                <h1><i class="fas fa-stethoscope"></i> Doctor Details</h1>
+
+                <div class="detail-row">
+                    <div class="detail-label">Doctor ID:</div>
+                    <div class="detail-value" th:text="${doctor.doctorId}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Name:</div>
+                    <div class="detail-value"><span th:text="${doctor.firstName}"></span> <span th:text="${doctor.lastName}"></span></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Specialization:</div>
+                    <div class="detail-value" th:text="${doctor.specialization}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Phone:</div>
+                    <div class="detail-value" th:text="${doctor.phoneNumber}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Email:</div>
+                    <div class="detail-value" th:text="${doctor.email}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">License:</div>
+                    <div class="detail-value" th:text="${doctor.licenseNumber}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value" th:text="${doctor.status}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Department:</div>
+                    <div class="detail-value" th:text="${doctor.department}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Experience:</div>
+                    <div class="detail-value" th:text="${doctor.yearsOfExperience}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Address:</div>
+                    <div class="detail-value" th:text="${doctor.address}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">City:</div>
+                    <div class="detail-value" th:text="${doctor.city}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">State:</div>
+                    <div class="detail-value" th:text="${doctor.state}"></div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Zip Code:</div>
+                    <div class="detail-value" th:text="${doctor.zipCode}"></div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn" onclick="toggleEditMode()">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <a th:href="@{/doctor/delete/{id}(id=${doctor.doctorId})}" class="btn danger" onclick="return confirm('Are you sure?')">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+
+            <!-- EDIT MODE -->
+            <div class="edit-section">
+                <h1><i class="fas fa-edit"></i> Edit Doctor</h1>
+
+                <form action="/hospital/doctor/update" method="POST" th:object="${doctor}">
+                    <input type="hidden" name="_csrf" th:value="${_csrf?.token}">
+                    <input type="hidden" name="doctorId" th:value="*{doctorId}">
+                    
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" th:value="*{firstName}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastName">Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" th:value="*{lastName}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="specialization">Specialization *</label>
+                        <select id="specialization" name="specialization" required>
+                            <option value="" th:text="'Select Specialization'"></option>
+                            <option value="Cardiology" th:selected="*{specialization=='Cardiology'}">Cardiology</option>
+                            <option value="Neurology" th:selected="*{specialization=='Neurology'}">Neurology</option>
+                            <option value="Orthopedics" th:selected="*{specialization=='Orthopedics'}">Orthopedics</option>
+                            <option value="Pediatrics" th:selected="*{specialization=='Pediatrics'}">Pediatrics</option>
+                            <option value="General Practice" th:selected="*{specialization=='General Practice'}">General Practice</option>
+                            <option value="Surgery" th:selected="*{specialization=='Surgery'}">Surgery</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone *</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" th:value="*{phoneNumber}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" th:value="*{email}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="licenseNumber">License Number *</label>
+                        <input type="text" id="licenseNumber" name="licenseNumber" th:value="*{licenseNumber}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="yearsOfExperience">Years of Experience</label>
+                        <input type="text" id="yearsOfExperience" name="yearsOfExperience" th:value="*{yearsOfExperience}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" name="department" th:value="*{department}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input type="text" id="address" name="address" th:value="*{address}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" th:value="*{city}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="state">State</label>
+                        <input type="text" id="state" name="state" th:value="*{state}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zipCode">Zip Code</label>
+                        <input type="text" id="zipCode" name="zipCode" th:value="*{zipCode}">
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit"><i class="fas fa-save"></i> Save Changes</button>
+                        <button type="button" class="btn-cancel" onclick="toggleEditMode()"><i class="fas fa-times"></i> Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="details-card" th:unless="${doctor}">
+            <p>Doctor not found.</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleEditMode() {
+            const container = document.getElementById('doctorContainer');
+            container.classList.toggle('edit-mode');
+        }
+    </script>
+</body>
+</html>

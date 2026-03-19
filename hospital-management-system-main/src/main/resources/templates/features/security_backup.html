@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Access Control - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --success: #00f5a0;
+            --danger: #ff006e;
+            --warning: #ffd60a;
+            --dark: #0f1419;
+            --light: #f8f9fa;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background orbs - red/pink accent */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 10%;
+            right: 10%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(255, 0, 110, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 10%;
+            left: 8%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob-reverse 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        @keyframes float-blob {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-50px) translateX(30px); }
+        }
+
+        @keyframes float-blob-reverse {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(50px) translateX(-30px); }
+        }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .security-card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .security-card:hover {
+            border-color: rgba(0, 212, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .card-icon.warning {
+            color: var(--warning);
+        }
+
+        .card-icon.danger {
+            color: var(--danger);
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .card p {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .security-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-badge.active {
+            background: var(--success);
+        }
+
+        .status-badge.inactive {
+            background: var(--danger);
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn.danger {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .btn.danger:hover {
+            background: linear-gradient(135deg, #ff006e 0%, #d60058 100%);
+        }
+
+        .activity-log {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .activity-log h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .activity-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+            min-width: 30px;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.3rem;
+        }
+
+        .activity-details {
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+
+        .activity-time {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .security-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> Security & Access Control</h1>
+            <a href="/hospital/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="security-grid">
+            <div class="security-card">
+                <div class="card-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3>Password Policy</h3>
+                <p>Enforce strong password requirements</p>
+                <div class="security-status">
+                    <span class="status-badge active"></span>
+                    <span>Enabled</span>
+                </div>
+                <button class="btn"><i class="fas fa-cog"></i> Configure</button>
+            </div>
+
+            <div class="security-card">
+                <div class="card-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h3>Two-Factor Auth</h3>
+                <p>Enable 2FA for extra security</p>
+                <div class="security-status">
+                    <span class="status-badge active"></span>
+                    <span>Enabled</span>
+                </div>
+                <button class="btn"><i class="fas fa-cog"></i> Configure</button>
+            </div>
+
+            <div class="security-card">
+                <div class="card-icon warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Account Lockout</h3>
+                <p>Lock accounts after failed attempts</p>
+                <div class="security-status">
+                    <span class="status-badge active"></span>
+                    <span>5 attempts</span>
+                </div>
+                <button class="btn"><i class="fas fa-cog"></i> Configure</button>
+            </div>
+
+            <div class="security-card">
+                <div class="card-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3>Session Management</h3>
+                <p>Manage active user sessions</p>
+                <div class="security-status">
+                    <span class="status-badge active"></span>
+                    <span>24 Active Sessions</span>
+                </div>
+                <button class="btn"><i class="fas fa-list"></i> View Sessions</button>
+            </div>
+
+            <div class="security-card">
+                <div class="card-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h3>Access Control</h3>
+                <p>Role-based access management</p>
+                <div class="security-status">
+                    <span class="status-badge active"></span>
+                    <span>5 Roles Active</span>
+                </div>
+                <button class="btn"><i class="fas fa-users-cog"></i> Manage Roles</button>
+            </div>
+
+            <div class="security-card">
+                <div class="card-icon danger">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <h3>Blocked IPs</h3>
+                <p>Manage IP blocklist</p>
+                <div class="security-status">
+                    <span class="status-badge active"></span>
+                    <span>12 IPs Blocked</span>
+                </div>
+                <button class="btn danger"><i class="fas fa-ban"></i> Manage Blocks</button>
+            </div>
+        </div>
+
+        <div class="activity-log">
+            <h3><i class="fas fa-chart-line"></i> Security Activity Log</h3>
+
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <div class="activity-info">
+                    <div class="activity-title">Successful Login</div>
+                    <div class="activity-details">Admin (admin@hospital.com) - IP: 192.168.1.100</div>
+                </div>
+                <div class="activity-time">2 min ago</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon" style="color: var(--warning);">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="activity-info">
+                    <div class="activity-title">Failed Login Attempt</div>
+                    <div class="activity-details">Unknown User - IP: 203.0.113.45</div>
+                </div>
+                <div class="activity-time">15 min ago</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="activity-info">
+                    <div class="activity-title">Password Changed</div>
+                    <div class="activity-details">Doctor (doctor@hospital.com)</div>
+                </div>
+                <div class="activity-time">1 hour ago</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon" style="color: var(--success);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="activity-info">
+                    <div class="activity-title">2FA Enabled</div>
+                    <div class="activity-details">Staff Member (staff@hospital.com)</div>
+                </div>
+                <div class="activity-time">3 hours ago</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <div class="activity-info">
+                    <div class="activity-title">API Key Generated</div>
+                    <div class="activity-details">System Integration - Key: ****7890</div>
+                </div>
+                <div class="activity-time">5 hours ago</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

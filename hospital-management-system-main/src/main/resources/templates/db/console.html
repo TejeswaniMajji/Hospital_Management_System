@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H2 Database Console - Hospital Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --secondary: #ff006e;
+            --success: #00f5a0;
+            --warning: #ffd60a;
+            --danger: #ff006e;
+            --dark: #0f1419;
+            --light: #f8f9fa;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            --gradient-green: linear-gradient(135deg, #00f5a0 0%, #00d084 100%);
+            --gradient-pink: linear-gradient(135deg, #ff006e 0%, #d60058 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 0, 110, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-reverse 10s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(30px) translateX(20px); }
+        }
+
+        @keyframes float-reverse {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-30px) translateX(-20px); }
+        }
+
+        .navbar {
+            background: rgba(15, 20, 25, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links a {
+            color: var(--primary);
+            text-decoration: none;
+            margin-left: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #00f5a0;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        /* Database Info Cards */
+        .db-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        /* Table Stats */
+        .table-stats {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        .table-stats h3 {
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .table-badge {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .table-badge::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.3) 0%, transparent 70%);
+            transition: all 0.3s ease;
+        }
+
+        .table-badge:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.8);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .table-badge-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-transform: capitalize;
+            position: relative;
+            z-index: 1;
+        }
+
+        .table-badge-count {
+            font-size: 0.9rem;
+            color: #888;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Query Editor Section */
+        .query-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .query-section h3 {
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+
+        .query-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            color: #00f5a0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            min-height: 150px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: rgba(0, 212, 255, 0.8);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .query-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-blue);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        button:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        button:hover::before {
+            left: 0;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .btn-success::before {
+            background: var(--gradient-green);
+        }
+
+        .btn-success:hover {
+            color: white;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            display: none;
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-section h3 {
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+
+        .results-info {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .result-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #888;
+        }
+
+        .result-stat strong {
+            color: var(--primary);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 2px solid rgba(0, 212, 255, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        thead {
+            background: rgba(0, 212, 255, 0.1);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        tbody tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.active {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .message.success {
+            background: rgba(0, 245, 160, 0.1);
+            border: 2px solid var(--success);
+            color: var(--success);
+        }
+
+        .message.error {
+            background: rgba(255, 0, 110, 0.1);
+            border: 2px solid var(--danger);
+            color: var(--danger);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .query-controls {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .db-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tables-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <i class="fas fa-database"></i>
+                H2 Console
+            </div>
+            <div class="nav-links">
+                <a href="/hospital/">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/hospital/" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <div class="header">
+            <h1>H2 Database Console</h1>
+            <p>Interactive database management and SQL execution</p>
+        </div>
+
+        <!-- Database Information -->
+        <div class="db-info-grid">
+            <div class="info-card">
+                <div class="info-label"><i class="fas fa-database"></i> Database</div>
+                <div class="info-value" th:text="${dbName}">H2 Database</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label"><i class="fas fa-code-branch"></i> Version</div>
+                <div class="info-value" th:text="${dbVersion}">2.x</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label"><i class="fas fa-cog"></i> Driver</div>
+                <div class="info-value" th:text="${driverName}">H2 Driver</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label"><i class="fas fa-plug"></i> Connection</div>
+                <div class="info-value" th:text="${url}">jdbc:h2:mem:hospital_db</div>
+            </div>
+        </div>
+
+        <!-- Table Statistics -->
+        <div class="table-stats">
+            <h3><i class="fas fa-table"></i> Database Tables</h3>
+            <div class="tables-grid">
+                <div th:each="table : ${tables}" class="table-badge" onclick="loadTableData(this)">
+                    <div class="table-badge-name" th:text="${table.name}">Table Name</div>
+                    <div class="table-badge-count">
+                        <i class="fas fa-list"></i> <span th:text="${table.rows}">0</span> rows
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query Editor -->
+        <div class="query-section">
+            <h3><i class="fas fa-terminal"></i> SQL Query Editor</h3>
+            <div class="query-editor">
+                <textarea id="queryInput" placeholder="Enter your SQL query here...&#10;Example: SELECT * FROM patients LIMIT 10;"></textarea>
+                <div class="query-controls">
+                    <button class="btn-success" onclick="executeQuery()">
+                        <i class="fas fa-play"></i> Execute Query
+                    </button>
+                    <button onclick="clearQuery()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                    <button onclick="loadTableStructure()">
+                        <i class="fas fa-info-circle"></i> Show Tables
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="message" class="message"></div>
+
+        <!-- Results -->
+        <div id="resultsSection" class="results-section">
+            <h3><i class="fas fa-chart-bar"></i> Query Results</h3>
+            <div class="results-info">
+                <div class="result-stat">
+                    <i class="fas fa-list"></i> Rows: <strong id="rowCount">0</strong>
+                </div>
+                <div class="result-stat">
+                    <i class="fas fa-columns"></i> Columns: <strong id="colCount">0</strong>
+                </div>
+                <div class="result-stat">
+                    <i class="fas fa-clock"></i> Execution: <strong id="execTime">0ms</strong>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="resultsTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const queryInput = document.getElementById('queryInput');
+        const messageEl = document.getElementById('message');
+        const resultsSection = document.getElementById('resultsSection');
+
+        function showMessage(text, type) {
+            messageEl.textContent = text;
+            messageEl.className = `message active ${type}`;
+            setTimeout(() => {
+                messageEl.classList.remove('active');
+            }, 5000);
+        }
+
+        function executeQuery() {
+            const query = queryInput.value.trim();
+            
+            if (!query) {
+                showMessage('Please enter a query', 'error');
+                return;
+            }
+
+            const startTime = Date.now();
+            
+            fetch('/hospital/db/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'query=' + encodeURIComponent(query)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const endTime = Date.now();
+                const execTime = endTime - startTime;
+                
+                if (data.success) {
+                    if (data.data) {
+                        displayResults(data.data, data.columns, execTime);
+                        showMessage('Query executed successfully', 'success');
+                    } else {
+                        showMessage(data.message, 'success');
+                        resultsSection.classList.remove('active');
+                    }
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => showMessage('Error: ' + error.message, 'error'));
+        }
+
+        function displayResults(data, columns, execTime) {
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
+            
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+            
+            // Create headers
+            const headerRow = document.createElement('tr');
+            columns.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col;
+                headerRow.appendChild(th);
+            });
+            tableHead.appendChild(headerRow);
+            
+            // Create rows
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = row[col] !== null ? row[col] : 'NULL';
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+            
+            document.getElementById('rowCount').textContent = data.length;
+            document.getElementById('colCount').textContent = columns.length;
+            document.getElementById('execTime').textContent = execTime + 'ms';
+            
+            resultsSection.classList.add('active');
+        }
+
+        function clearQuery() {
+            queryInput.value = '';
+            queryInput.focus();
+            resultsSection.classList.remove('active');
+        }
+
+        function loadTableStructure() {
+            queryInput.value = 'SELECT * FROM patients LIMIT 5;';
+            queryInput.focus();
+        }
+
+        function loadTableData(element) {
+            const tableName = element.querySelector('.table-badge-name').textContent.trim().toLowerCase();
+            queryInput.value = `SELECT * FROM ${tableName} LIMIT 10;`;
+            queryInput.focus();
+        }
+
+        // Allow Enter key to execute query
+        queryInput.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                executeQuery();
+            }
+        });
+    </script>
+</body>
+</html>

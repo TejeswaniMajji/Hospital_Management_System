@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H2 Database Console - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --secondary: #ff006e;
+            --success: #00f5a0;
+            --warning: #ffd60a;
+            --danger: #ff006e;
+            --dark: #0f1419;
+            --light: #f8f9fa;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            --gradient-green: linear-gradient(135deg, #00f5a0 0%, #00d084 100%);
+            --gradient-pink: linear-gradient(135deg, #ff006e 0%, #d60058 100%);
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 0, 110, 0.15) 0%, transparent 50%);
+            animation: moveBackground 15s ease infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes moveBackground {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(50px, 50px); }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.02"><path d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/></g></g></svg>');
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+        }
+
+        /* Login Card */
+        .login-card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header */
+        .login-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            animation: slideInDown 0.6s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .login-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            color: #888;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Form Group */
+        .form-group {
+            margin-bottom: 1.5rem;
+            animation: slideInUp 0.6s ease-out both;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+
+        label {
+            display: block;
+            margin-bottom: 0.7rem;
+            color: #b0b0b0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Input Fields */
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 212, 255, 0.05) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            color: #00f5a0;
+            font-size: 0.95rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        input[type="text"]::placeholder,
+        input[type="password"]::placeholder {
+            color: #555;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            outline: none;
+            border-color: rgba(0, 212, 255, 0.8);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 212, 255, 0.1) 100%);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2),
+                        inset 0 0 10px rgba(0, 212, 255, 0.05);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            padding-right: 2.5rem;
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L6 6L11 1" stroke="%2300d4ff" stroke-width="2" stroke-linecap="round"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+        }
+
+        /* Driver Selection */
+        .driver-section {
+            background: rgba(0, 212, 255, 0.05);
+            border-left: 3px solid var(--primary);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            animation: slideInUp 0.6s ease-out 0.15s both;
+        }
+
+        .driver-section label {
+            margin-bottom: 0.7rem;
+            color: var(--primary);
+        }
+
+        .driver-option {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .driver-option:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .driver-option input[type="radio"] {
+            margin-right: 0.8rem;
+            cursor: pointer;
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .driver-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .driver-desc {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* Login Button */
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: slideInUp 0.6s ease-out 0.25s both;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-blue);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .login-btn:hover::before {
+            left: 0;
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%);
+            border-left: 3px solid var(--success);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #b0b0b0;
+            animation: slideInUp 0.6s ease-out 0.3s both;
+        }
+
+        .info-box i {
+            color: var(--success);
+            margin-right: 0.5rem;
+        }
+
+        /* Links */
+        .login-links {
+            text-align: center;
+            margin-top: 1.5rem;
+            animation: slideInUp 0.6s ease-out 0.35s both;
+        }
+
+        .login-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .login-links a:hover {
+            color: var(--success);
+            transform: translateY(-2px);
+        }
+
+        .login-links span {
+            color: #666;
+            margin: 0 0.5rem;
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+            animation: slideInDown 0.3s ease-out;
+        }
+
+        .status-message.active {
+            display: block;
+        }
+
+        .status-message.success {
+            background: rgba(0, 245, 160, 0.1);
+            border-left: 3px solid var(--success);
+            color: var(--success);
+        }
+
+        .status-message.error {
+            background: rgba(255, 0, 110, 0.1);
+            border-left: 3px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .status-message.info {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .login-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .login-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 212, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes float-particle {
+            0% { transform: translateY(0) translateX(0); opacity: 1; }
+            100% { transform: translateY(-100px) translateX(100px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <!-- Status Messages -->
+            <div id="statusMessage" class="status-message"></div>
+
+            <!-- Header -->
+            <div class="login-header">
+                <div class="logo">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h1>H2 Console</h1>
+                <p>Hospital Database Management System</p>
+            </div>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <span>Default credentials: Username is empty, just click Login</span>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <!-- Driver Selection -->
+                <div class="driver-section">
+                    <label><i class="fas fa-cog"></i> Database Driver</label>
+                    <div class="driver-option">
+                        <input type="radio" id="driver-h2" name="driver" value="org.h2.Driver" checked>
+                        <div>
+                            <div class="driver-name">H2 Database</div>
+                            <div class="driver-desc">H2 embedded in-memory database</div>
+                        </div>
+                    </div>
+                    <div class="driver-option">
+                        <input type="radio" id="driver-h2-url" name="driver" value="h2-url">
+                        <div>
+                            <div class="driver-name">H2 (Custom URL)</div>
+                            <div class="driver-desc">Connect with custom database URL</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Selection -->
+                <div class="form-group">
+                    <label><i class="fas fa-database"></i> Database</label>
+                    <select id="database" name="database">
+                        <option value="h2" selected>H2 (Hospital Database)</option>
+                        <option value="mysql">MySQL (Optional)</option>
+                        <option value="postgres">PostgreSQL (Optional)</option>
+                    </select>
+                </div>
+
+                <!-- Connection URL -->
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> JDBC URL</label>
+                    <input type="text" 
+                           id="url" 
+                           name="url" 
+                           value="jdbc:h2:mem:hospital_db" 
+                           placeholder="e.g., jdbc:h2:mem:hospital_db"
+                           readonly>
+                </div>
+
+                <!-- Username -->
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Username</label>
+                    <input type="text" 
+                           id="username" 
+                           name="username" 
+                           placeholder="Leave empty (default: sa)" 
+                           autocomplete="off">
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           placeholder="Leave empty (default: no password)"
+                           autocomplete="off">
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Connect to Database
+                </button>
+            </form>
+
+            <!-- Footer Links -->
+            <div class="login-links">
+                <a href="/hospital/">
+                    <i class="fas fa-home"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUrl();
+            addFloatingParticles();
+        });
+
+        // Update JDBC URL based on selection
+        function updateUrl() {
+            const driver = document.getElementById('driver-h2').checked ? 'h2' : 'h2-url';
+            const database = document.getElementById('database').value;
+            const urlInput = document.getElementById('url');
+
+            if (driver === 'h2') {
+                if (database === 'h2') {
+                    urlInput.value = 'jdbc:h2:mem:hospital_db';
+                } else if (database === 'mysql') {
+                    urlInput.value = 'jdbc:mysql://localhost:3306/hospital_db';
+                } else if (database === 'postgres') {
+                    urlInput.value = 'jdbc:postgresql://localhost:5432/hospital_db';
+                }
+            } else {
+                urlInput.value = '';
+                urlInput.placeholder = 'Enter custom JDBC URL';
+            }
+        }
+
+        // Update URL on driver/database change
+        document.querySelectorAll('input[name="driver"], select[name="database"]').forEach(el => {
+            el.addEventListener('change', updateUrl);
+        });
+
+        // Handle form submission
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value || 'sa';
+            const password = document.getElementById('password').value || '';
+            const url = document.getElementById('url').value;
+            const driver = document.getElementById('driver-h2').checked 
+                ? 'org.h2.Driver' 
+                : 'h2-url';
+
+            // Show loading state
+            const btn = event.target.querySelector('button[type="submit"]');
+            btn.classList.add('loading');
+            btn.innerHTML = '<span class="spinner"></span> Connecting...';
+
+            // Simulate connection (in production, this would make an API call)
+            setTimeout(() => {
+                if (url.trim() && driver === 'org.h2.Driver') {
+                    showMessage('Connected successfully! Redirecting to console...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/hospital/db/console';
+                    }, 1500);
+                } else if (!url.trim()) {
+                    showMessage('Please enter a valid JDBC URL', 'error');
+                    btn.classList.remove('loading');
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Connect to Database';
+                } else {
+                    showMessage('Connected successfully! Redirecting to console...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/hospital/db/console';
+                    }, 1500);
+                }
+            }, 1200);
+        }
+
+        // Show status message
+        function showMessage(text, type) {
+            const msgEl = document.getElementById('statusMessage');
+            msgEl.textContent = text;
+            msgEl.className = `status-message active ${type}`;
+            
+            if (type === 'error') {
+                setTimeout(() => msgEl.classList.remove('active'), 4000);
+            }
+        }
+
+        // Add floating particles
+        function addFloatingParticles() {
+            const particleCount = 30;
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.animation = `float-particle ${2 + Math.random() * 3}s ease-out forwards`;
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => particle.remove(), 5000);
+                }, i * 100);
+            }
+        }
+
+        // Allow Enter to submit form
+        document.getElementById('loginForm').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleLogin(e);
+            }
+        });
+
+        // Re-add particles periodically
+        setInterval(addFloatingParticles, 8000);
+    </script>
+</body>
+</html>

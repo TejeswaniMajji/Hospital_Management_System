@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Management - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --success: #00f5a0;
+            --danger: #ff006e;
+            --warning: #ffd60a;
+            --dark: #0f1419;
+            --light: #f8f9fa;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 10%;
+            left: 5%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 10%;
+            right: 5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 245, 160, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob-reverse 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        @keyframes float-blob {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+            25% { transform: translateY(-40px) translateX(30px) scale(1.1); }
+            50% { transform: translateY(0) translateX(50px) scale(0.95); }
+            75% { transform: translateY(40px) translateX(20px) scale(1.05); }
+        }
+
+        @keyframes float-blob-reverse {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+            25% { transform: translateY(40px) translateX(-30px) scale(0.95); }
+            50% { transform: translateY(0) translateX(-50px) scale(1.1); }
+            75% { transform: translateY(-40px) translateX(-20px) scale(1.05); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            animation: slideInUp 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: card-orb 5s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes card-orb {
+            0%, 100% { top: -50%; right: -50%; }
+            50% { top: -30%; right: -30%; }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:hover {
+            border-color: rgba(0, 212, 255, 0.7);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.25), inset 0 0 30px rgba(0, 212, 255, 0.05);
+            transform: translateY(-8px) scale(1.02);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(26, 31, 46, 0.9) 100%);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            animation: icon-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes icon-pulse {
+            0%, 100% { 
+                transform: scale(1);
+                text-shadow: 0 0 0 rgba(0, 212, 255, 0);
+            }
+            50% { 
+                transform: scale(1.1);
+                text-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+            }
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .card p {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--success);
+            margin: 1rem 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-blue);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.35);
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn.success {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .btn.success::before {
+            background: linear-gradient(135deg, #00f5a0 0%, #00d084 100%);
+        }
+
+        .btn.success:hover {
+            color: #000;
+        }
+
+        .table-section {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            backdrop-filter: blur(20px);
+            animation: slideInUp 0.7s ease-out 0.2s both;
+            position: relative;
+        }
+
+        .table-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-particle 8s ease-in-out infinite;
+        }
+
+        @keyframes float-particle {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-20px) translateX(-20px); }
+        }
+
+        .table-section h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+            position: relative;
+            z-index: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            position: relative;
+            z-index: 1;
+        }
+
+        thead {
+            background: linear-gradient(90deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--primary);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            color: #ccc;
+            transition: all 0.3s ease;
+        }
+
+        tr {
+            transition: all 0.3s ease;
+        }
+
+        tr:hover {
+            background: linear-gradient(90deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%);
+            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+
+        tr:hover td {
+            color: var(--primary);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            animation: status-pulse 2s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+
+        .status.active {
+            background: rgba(0, 245, 160, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(0, 245, 160, 0.5);
+            box-shadow: 0 0 10px rgba(0, 245, 160, 0);
+        }
+
+        .status.active:hover {
+            background: rgba(0, 245, 160, 0.3);
+            box-shadow: 0 0 15px rgba(0, 245, 160, 0.4);
+            transform: scale(1.05);
+        }
+
+        .status.inactive {
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--danger);
+            border: 1px solid rgba(255, 0, 110, 0.5);
+            box-shadow: 0 0 10px rgba(255, 0, 110, 0);
+        }
+
+        .status.inactive:hover {
+            background: rgba(255, 0, 110, 0.3);
+            box-shadow: 0 0 15px rgba(255, 0, 110, 0.4);
+            transform: scale(1.05);
+        }
+
+        @keyframes status-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #888;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-users"></i> Patient Management</h1>
+            <a href="/hospital/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <h3>Active Patients</h3>
+                <p>Currently active patient records</p>
+                <div class="stat-number" th:text="${patientCount != null ? patientCount : 0}">0</div>
+                <div class="action-buttons">
+                    <a th:href="@{/patient/list}" class="btn"><i class="fas fa-eye"></i> View All</a>
+                    <a th:href="@{/patient/add}" class="btn success"><i class="fas fa-plus"></i> Add New</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3>Appointments</h3>
+                <p>Scheduled appointments today</p>
+                <div class="stat-number" th:text="${appointmentCount != null ? appointmentCount : 0}">0</div>
+                <div class="action-buttons">
+                    <a th:href="@{/patient/list}" class="btn"><i class="fas fa-list"></i> Schedule</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">
+                    <i class="fas fa-file-medical"></i>
+                </div>
+                <h3>Medical Records</h3>
+                <p>Patient medical history & files</p>
+                <div class="stat-number" th:text="${patientCount != null ? patientCount : 0}">0</div>
+                <div class="action-buttons">
+                    <a th:href="@{/patient/list}" class="btn"><i class="fas fa-search"></i> Search</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h3><i class="fas fa-table"></i> Recent Patients</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Name</th>
+                        <th>Contact</th>
+                        <th>Blood Group</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="patient : ${patients}" th:if="${patients != null and !patients.isEmpty()}">
+                        <td th:text="'#P' + ${patient.patientId}"></td>
+                        <td th:text="${patient.firstName + ' ' + patient.lastName}"></td>
+                        <td th:text="${patient.email}"></td>
+                        <td th:text="${patient.bloodGroup ?: 'N/A'}"></td>
+                        <td><span class="status" th:classappend="${patient.status}" th:text="${patient.status}">Active</span></td>
+                        <td>
+                            <a th:href="@{/patient/edit/{id}(id=${patient.patientId})}" class="btn" style="padding: 0.4rem 0.8rem;">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${patients == null or patients.isEmpty()}">
+                        <td colspan="6" class="empty-state">
+                            <i class="fas fa-user-slash"></i>
+                            <p>No patients found</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Interactive particle creation
+        function createFeatureParticles() {
+            const colors = [
+                'rgba(0, 212, 255, 0.6)',
+                'rgba(0, 245, 160, 0.5)',
+                'rgba(255, 214, 10, 0.4)'
+            ];
+
+            const particleCount = 15;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'fixed';
+                particle.style.width = (Math.random() * 4 + 2) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animation = `float-particles ${Math.random() * 15 + 10}s infinite ease-in-out`;
+                particle.style.pointerEvents = 'none';
+                particle.style.zIndex = '0';
+                particle.style.filter = 'blur(0.5px)';
+                document.body.appendChild(particle);
+            }
+        }
+
+        // Card hover ripple effect
+        function addCardRipples() {
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const ripple = document.createElement('span');
+                    ripple.style.position = 'absolute';
+                    ripple.style.width = '20px';
+                    ripple.style.height = '20px';
+                    ripple.style.background = 'rgba(0, 212, 255, 0.3)';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.pointerEvents = 'none';
+                    ripple.style.animation = 'ripple-effect 0.6s ease-out';
+                    ripple.style.left = Math.random() * 100 + '%';
+                    ripple.style.top = Math.random() * 100 + '%';
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+        }
+
+        // Table row hover enhancement
+        function addTableInteractions() {
+            document.querySelectorAll('tbody tr').forEach((row, index) => {
+                row.style.animationDelay = (index * 0.05) + 's';
+                
+                row.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.01)';
+                    this.style.filter = 'brightness(1.1)';
+                });
+
+                row.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                    this.style.filter = 'brightness(1)';
+                });
+            });
+        }
+
+        // Button click animation
+        function addButtonAnimations() {
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+
+                    ripple.style.position = 'absolute';
+                    ripple.style.width = size + 'px';
+                    ripple.style.height = size + 'px';
+                    ripple.style.background = 'rgba(255, 255, 255, 0.5)';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.style.pointerEvents = 'none';
+                    ripple.style.animation = 'button-ripple 0.6s ease-out';
+                    
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+        }
+
+        // Back button hover effect
+        function addBackButtonEffect() {
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px) translateX(-5px)';
+                });
+
+                backBtn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) translateX(0)';
+                });
+            }
+        }
+
+        // Initialize all interactions on page load
+        window.addEventListener('load', () => {
+            createFeatureParticles();
+            addCardRipples();
+            addTableInteractions();
+            addButtonAnimations();
+            addBackButtonEffect();
+        });
+
+        // Mouse tracking effect
+        document.addEventListener('mousemove', function(e) {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            // Subtle parallax effect
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                const offset = 5;
+                card.style.transform = `perspective(1000px) rotateY(${(x - 0.5) * offset}deg) rotateX(${(0.5 - y) * offset}deg)`;
+            });
+        });
+
+        // Reset perspective on mouse leave
+        document.addEventListener('mouseleave', function() {
+            document.querySelectorAll('.card').forEach(card => {
+                card.style.transform = 'perspective(1000px) rotateY(0) rotateX(0)';
+            });
+        });
+    </script>
+
+    <style>
+        @keyframes ripple-effect {
+            from {
+                transform: scale(0);
+                opacity: 1;
+            }
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        @keyframes button-ripple {
+            from {
+                transform: scale(0);
+                opacity: 1;
+            }
+            to {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        @keyframes float-particles {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --secondary: #ff006e;
+            --success: #00f5a0;
+            --warning: #ffd60a;
+            --danger: #ff006e;
+            --dark: #0f1419;
+            --light: #f8f9fa;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            --gradient-green: linear-gradient(135deg, #00f5a0 0%, #00d084 100%);
+            --gradient-pink: linear-gradient(135deg, #ff006e 0%, #d60058 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+            filter: blur(40px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 0, 110, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-reverse 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+            filter: blur(40px);
+        }
+
+        /* Additional animated background layers */
+        body {
+            background-image: 
+                radial-gradient(at 20% 50%, rgba(0, 212, 255, 0.05) 0px, transparent 50px),
+                radial-gradient(at 80% 80%, rgba(255, 0, 110, 0.05) 0px, transparent 50px),
+                radial-gradient(at 50% 20%, rgba(0, 245, 160, 0.05) 0px, transparent 50px),
+                linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            background-attachment: fixed;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+            25% { transform: translateY(-40px) translateX(30px) scale(1.05); }
+            50% { transform: translateY(0) translateX(50px) scale(0.95); }
+            75% { transform: translateY(40px) translateX(20px) scale(1.02); }
+        }
+
+        @keyframes float-reverse {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+            25% { transform: translateY(40px) translateX(-30px) scale(0.95); }
+            50% { transform: translateY(0) translateX(-50px) scale(1.05); }
+            75% { transform: translateY(-40px) translateX(-20px) scale(0.98); }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Animated particles background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 212, 255, 0.5);
+            border-radius: 50%;
+            animation: float-particle 20s infinite linear;
+        }
+
+        @keyframes float-particle {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) translateX(0);
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) translateX(100px);
+            }
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: rgba(15, 20, 25, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-brand i {
+            color: var(--primary);
+        }
+
+        /* Header */
+        .header {
+            background: var(--gradient);
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-top: 0;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            margin: 0;
+            animation: slideUp 0.6s ease-out 0.1s both;
+        }
+
+        .time-display {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            animation: slideUp 0.6s ease-out 0.2s both;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 4rem;
+            flex-wrap: wrap;
+            animation: slideUp 0.6s ease-out 0.3s both;
+        }
+
+        .nav-btn {
+            padding: 0.8rem 2rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            text-decoration: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-blue);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .nav-btn:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .nav-btn:hover::before {
+            left: 0;
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.4s; }
+        .stat-card:nth-child(2) { animation-delay: 0.5s; }
+        .stat-card:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            animation: orb-move 6s ease-in-out infinite;
+        }
+
+        @keyframes orb-move {
+            0%, 100% { top: -50%; right: -50%; }
+            50% { top: -30%; right: -30%; }
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 212, 255, 0.7);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 212, 255, 0.08) 100%);
+            box-shadow: 0 20px 50px rgba(0, 212, 255, 0.3), 0 0 30px rgba(0, 212, 255, 0.1);
+        }
+
+        .stat-card:hover::before {
+            top: -20%;
+            right: -20%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.3) 0%, transparent 70%);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1); 
+                text-shadow: 0 0 0 rgba(0, 212, 255, 0);
+            }
+            50% { 
+                opacity: 0.9; 
+                transform: scale(1.1); 
+                text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            }
+        }
+
+        .stat-card h3 {
+            font-size: 1rem;
+            color: #b0b0b0;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover .stat-number {
+            font-size: 3rem;
+        }
+
+        .stat-subtitle {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* Features Section */
+        .features-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.6s ease-out 0.7s both;
+        }
+
+        .features-section h2 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border-left: 3px solid var(--primary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .feature-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .feature-content h4 {
+            margin: 0 0 0.3rem 0;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .feature-content p {
+            margin: 0;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(0, 212, 255, 0.1);
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 3rem;
+            animation: fadeInUp 0.6s ease-out 0.8s both;
+        }
+
+        .footer p {
+            margin: 0.5rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+
+            .nav-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Loading animation */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        .loading {
+            animation: shimmer 2s infinite;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 212, 255, 0.2) 50%, transparent 100%);
+            background-size: 1000px 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <i class="fas fa-hospital"></i>
+                HMS Dashboard
+            </div>
+            <div style="display: flex; align-items: center; gap: 2rem;">
+                <!-- Database Console link near the time -->
+                <a th:href="@{/db/console}" class="nav-btn" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-width: 1px;">
+                    <i class="fas fa-database"></i> DB Console
+                </a>
+                <div style="font-size: 0.9rem; color: #888; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-clock"></i>
+                    <span id="current-time"></span>
+                </div>
+                <!-- User profile and Logout -->
+                <div th:if="${#authorization.expression('isAuthenticated()')}" style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-size: 0.9rem; color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 0.5rem; background: rgba(0, 212, 255, 0.1); padding: 0.4rem 1rem; border-radius: 20px;">
+                        <i class="fas fa-user-circle"></i>
+                        <span th:text="${#authentication.name}">User</span>
+                    </div>
+                    <form th:action="@{/auth/logout}" method="post" style="display: inline;">
+                        <button type="submit" class="nav-btn" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-width: 1px; color: var(--danger); border-color: var(--danger); background: transparent; cursor: pointer;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <div th:if="${#authorization.expression('isAuthenticated()')}" style="display: flex; align-items: center; gap: 1.2rem; margin-bottom: 0.5rem;">
+                    <div style="position: relative;">
+                        <img src="/images/hospital-logo.png" alt="Hospital Logo" style="width: 60px; height: 60px; border-radius: 12px; border: 3px solid #00d4ff; object-fit: cover; background: #fff;">
+                    </div>
+                    <div style="text-align: left;">
+                        <h2 style="margin: 0; font-size: 1.5rem; color: #fff;">Welcome, <span th:text="${user != null ? user.firstName : #authentication.name}">User</span>!</h2>
+                        <span style="font-size: 1rem; color: #ffd60a; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;" th:text="${user != null ? user.role : ''}"></span>
+                    </div>
+                </div>
+                <h1>Hospital Management System</h1>
+                <p>Comprehensive Healthcare Platform</p>
+                <div class="time-display">
+                    <i class="fas fa-heartbeat" style="color: #ff006e;"></i>
+                    System Status: <span style="color: #00f5a0;">Online</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <!-- Show Login/Register only if NOT authenticated -->
+            <th:block th:if="${!#authorization.expression('isAuthenticated()')}">
+                <a th:href="@{/auth/login}" class="nav-btn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+                <a th:href="@{/auth/register}" class="nav-btn">
+                    <i class="fas fa-user-plus"></i> Register
+                </a>
+            </th:block>
+        </div>
+
+        <!-- Dashboard Statistics -->
+        <div class="dashboard">
+            <div class="stat-card">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Total Patients</h3>
+                <div class="stat-number" th:text="${totalPatients}">0</div>
+                <div class="stat-subtitle">Active patient records</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="card-icon">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <h3>Total Doctors</h3>
+                <div class="stat-number" th:text="${totalDoctors}">0</div>
+                <div class="stat-subtitle">Medical practitioners</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="card-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h3>Total Staff</h3>
+                <div class="stat-number" th:text="${totalStaff}">0</div>
+                <div class="stat-subtitle">Administrative personnel</div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="features-section" style="margin-bottom: 3rem;">
+            <h2>Analytics & Insights</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; align-items: flex-start;">
+                <div style="background: rgba(255,255,255,0.03); border-radius: 15px; padding: 2rem; min-width: 320px; flex: 1 1 350px; max-width: 500px; box-shadow: 0 4px 24px rgba(0,212,255,0.07);">
+                    <h3 style="margin-bottom: 1rem; color: #00d4ff;">Appointments Over Time</h3>
+                    <canvas id="appointmentsChart" height="220"></canvas>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border-radius: 15px; padding: 2rem; min-width: 320px; flex: 1 1 350px; max-width: 500px; box-shadow: 0 4px 24px rgba(0,212,255,0.07);">
+                    <h3 style="margin-bottom: 1rem; color: #00d4ff;">Patient Demographics</h3>
+                    <canvas id="demographicsChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features-section">
+            <h2>System Features</h2>
+            <div class="features-grid">
+                <a th:href="@{/features/patients}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Patient Management</h4>
+                        <p>Track and manage patient records efficiently</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/doctors}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-stethoscope"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Doctor Management</h4>
+                        <p>Organize doctor profiles and specializations</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/appointments}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Appointment Scheduling</h4>
+                        <p>Schedule and manage medical appointments</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/staff}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Staff Management</h4>
+                        <p>Administer hospital staff and resources</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/security}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Security & Auth</h4>
+                        <p>Secure login and role-based access control</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/analytics}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Analytics</h4>
+                        <p>Generate reports and insights</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/calendar}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Calendar View</h4>
+                        <p>Visual appointment calendar</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/billing}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Billing & Payments</h4>
+                        <p>Manage invoices and payments</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/laboratory}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Laboratory</h4>
+                        <p>Lab tests and results management</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/pharmacy}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Pharmacy</h4>
+                        <p>Medicine inventory and prescriptions</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/features/notifications}" class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h4>Notifications</h4>
+                        <p>Alerts and notification center</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><i class="fas fa-copyright"></i> 2026 Hospital Management System. All Rights Reserved.</p>
+            <p>Providing comprehensive healthcare solutions</p>
+        </div>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // --- Chart.js Analytics Section ---
+        // Example data, replace with Thymeleaf variables or AJAX for real data
+        const appointmentsData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+            datasets: [{
+                label: 'Appointments',
+                data: [12, 19, 14, 17, 23, 20, 25],
+                backgroundColor: 'rgba(0, 212, 255, 0.3)',
+                borderColor: '#00d4ff',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        };
+        const appointmentsConfig = {
+            type: 'line',
+            data: appointmentsData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#222' } },
+                    x: { grid: { color: '#222' } }
+                }
+            }
+        };
+        // Patient Demographics Pie Chart
+        const demographicsData = {
+            labels: ['Male', 'Female', 'Other'],
+            datasets: [{
+                label: 'Patients',
+                data: [60, 35, 5],
+                backgroundColor: [
+                    'rgba(0, 212, 255, 0.7)',
+                    'rgba(255, 0, 110, 0.7)',
+                    'rgba(0, 245, 160, 0.7)'
+                ],
+                borderColor: '#222',
+                borderWidth: 1
+            }]
+        };
+        const demographicsConfig = {
+            type: 'pie',
+            data: demographicsData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#e0e0e0', font: { size: 14 } } },
+                    title: { display: false }
+                }
+            }
+        };
+        window.addEventListener('DOMContentLoaded', function() {
+            if (document.getElementById('appointmentsChart')) {
+                new Chart(document.getElementById('appointmentsChart').getContext('2d'), appointmentsConfig);
+            }
+            if (document.getElementById('demographicsChart')) {
+                new Chart(document.getElementById('demographicsChart').getContext('2d'), demographicsConfig);
+            }
+        });
+
+        // Create animated particles background
+        function createParticles() {
+            const container = document.body;
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 20 + 15) + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                particle.style.opacity = Math.random() * 0.5 + 0.2;
+                container.appendChild(particle);
+            }
+        }
+
+        // Create more animated particles with different colors
+        function createColorfulParticles() {
+            const colors = [
+                'rgba(0, 212, 255, 0.6)',
+                'rgba(255, 0, 110, 0.5)',
+                'rgba(0, 245, 160, 0.5)',
+                'rgba(255, 214, 10, 0.4)'
+            ];
+            
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'fixed';
+                particle.style.width = (Math.random() * 3 + 2) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animation = `float-particles ${Math.random() * 15 + 10}s infinite ease-in-out`;
+                particle.style.pointerEvents = 'none';
+                particle.style.zIndex = '1';
+                particle.style.filter = 'blur(0.5px)';
+                document.body.appendChild(particle);
+            }
+        }
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+
+        // Update time on page load and every second
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Add animation to stat numbers
+        function animateNumbers() {
+            const numbers = document.querySelectorAll('.stat-number');
+            numbers.forEach(el => {
+                const target = parseInt(el.textContent);
+                let current = 0;
+                const increment = Math.ceil(target / 30);
+                const interval = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        el.textContent = target;
+                        clearInterval(interval);
+                    } else {
+                        el.textContent = current;
+                    }
+                }, 30);
+            });
+        }
+
+        // Mouse tracking for interactive background effect
+        document.addEventListener('mousemove', function(e) {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            // Apply subtle background shift
+            document.body.style.backgroundPosition = (x * 50) + '% ' + (y * 50) + '%';
+        });
+
+        // Trigger animations on load
+        window.addEventListener('load', () => {
+            animateNumbers();
+            createParticles();
+            createColorfulParticles();
+        });
+
+        // Add hover ripple effect
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', function(e) {
+                const ripple = document.createElement('span');
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255, 255, 255, 0.5)';
+                ripple.style.width = '30px';
+                ripple.style.height = '30px';
+                ripple.style.animation = 'ripple 0.6s ease-out';
+                ripple.style.pointerEvents = 'none';
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // Smooth scroll and enhanced effect for feature items
+        document.querySelectorAll('.feature-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.02) translateY(-5px)';
+                this.style.filter = 'brightness(1.2)';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1) translateY(0)';
+                this.style.filter = 'brightness(1)';
+            });
+        });
+
+        // Add scroll animation for cards
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.stat-card, .feature-item').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Add glow effect on stat cards
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.borderColor = 'rgba(0, 212, 255, 0.8)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.borderColor = 'rgba(0, 212, 255, 0.2)';
+            });
+        });
+    </script>
+
+    <style>
+        @keyframes ripple {
+            from {
+                transform: scale(0);
+                opacity: 1;
+            }
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        @keyframes float-particles {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --success: #00f5a0;
+            --danger: #ff006e;
+            --warning: #ffd60a;
+            --dark: #0f1419;
+            --light: #f8f9fa;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 12%;
+            left: 5%;
+            width: 330px;
+            height: 330px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob 9s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 12%;
+            right: 5%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(0, 245, 160, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob-reverse 11s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        @keyframes float-blob {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-55px) translateX(35px); }
+        }
+
+        @keyframes float-blob-reverse {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(55px) translateX(-35px); }
+        }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .table-section {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-header h3 {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn.success {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .btn.success:hover {
+            background: linear-gradient(135deg, #00f5a0 0%, #00d084 100%);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--primary);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            color: #ccc;
+        }
+
+        tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .department-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--primary);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status.active {
+            background: rgba(0, 245, 160, 0.2);
+            color: var(--success);
+        }
+
+        .status.inactive {
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--danger);
+        }
+
+        .btn-action {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-user-tie"></i> Staff Management</h1>
+            <a href="/hospital/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">45</div>
+                <div class="stat-label">Total Staff</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">42</div>
+                <div class="stat-label">Active Staff</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Departments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">On Leave</div>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <div class="table-header">
+                <h3><i class="fas fa-list"></i> Staff Directory</h3>
+                <button class="btn success">
+                    <i class="fas fa-plus"></i> Add Staff
+                </button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Staff ID</th>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Department</th>
+                        <th>Contact</th>
+                        <th>Join Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#S001</td>
+                        <td>Robert Thompson</td>
+                        <td>Nurse</td>
+                        <td><span class="department-badge">ICU</span></td>
+                        <td>robert@hospital.com</td>
+                        <td>Jan 15, 2023</td>
+                        <td><span class="status active">Active</span></td>
+                        <td>
+                            <button class="btn btn-action"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#S002</td>
+                        <td>Jennifer Lee</td>
+                        <td>Lab Technician</td>
+                        <td><span class="department-badge">Laboratory</span></td>
+                        <td>jennifer@hospital.com</td>
+                        <td>Mar 20, 2022</td>
+                        <td><span class="status active">Active</span></td>
+                        <td>
+                            <button class="btn btn-action"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#S003</td>
+                        <td>David Martinez</td>
+                        <td>Admin Assistant</td>
+                        <td><span class="department-badge">Administration</span></td>
+                        <td>david@hospital.com</td>
+                        <td>Jun 10, 2023</td>
+                        <td><span class="status active">Active</span></td>
+                        <td>
+                            <button class="btn btn-action"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#S004</td>
+                        <td>Patricia Johnson</td>
+                        <td>Receptionist</td>
+                        <td><span class="department-badge">Frontend</span></td>
+                        <td>patricia@hospital.com</td>
+                        <td>Feb 28, 2023</td>
+                        <td><span class="status inactive">On Leave</span></td>
+                        <td>
+                            <button class="btn btn-action"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#S005</td>
+                        <td>William Davis</td>
+                        <td>Security Guard</td>
+                        <td><span class="department-badge">Security</span></td>
+                        <td>william@hospital.com</td>
+                        <td>Aug 05, 2022</td>
+                        <td><span class="status active">Active</span></td>
+                        <td>
+                            <button class="btn btn-action"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

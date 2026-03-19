@@ -1,0 +1,2778 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics & Reports - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --success: #00f5a0;
+            --danger: #ff006e;
+            --warning: #ffd60a;
+            --dark: #0f1419;
+            --light: #f8f9fa;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 15%;
+            left: 10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 214, 10, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 20%;
+            right: 10%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(0, 245, 160, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob-reverse 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        @keyframes float-blob {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-60px) translateX(40px); }
+        }
+
+        @keyframes float-blob-reverse {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(60px) translateX(-40px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .filter-group label {
+            color: #aaa;
+            font-weight: 600;
+        }
+
+        .filter-group select {
+            padding: 0.6rem 1rem;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 212, 255, 0.05) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            color: #00f5a0;
+            transition: all 0.3s ease;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: rgba(0, 212, 255, 0.8);
+        }
+
+        .filter-group input[type="date"] {
+            padding: 0.6rem 1rem;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 212, 255, 0.05) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            color: #00f5a0;
+            transition: all 0.3s ease;
+        }
+
+        .filter-group input[type="date"]:focus {
+            outline: none;
+            border-color: rgba(0, 212, 255, 0.8);
+        }
+
+        .filter-group input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .btn-apply {
+            padding: 0.6rem 1.5rem;
+            background: var(--gradient-blue);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .filter-info {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-info-text {
+            color: #aaa;
+        }
+
+        .filter-info-text strong {
+            color: #00f5a0;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 20, 25, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 212, 255, 0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .download-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 20, 25, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .download-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .download-content {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.95) 0%, rgba(26, 31, 46, 0.95) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .download-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .download-header h3 {
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .download-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .download-close:hover {
+            color: #ff006e;
+        }
+
+        .download-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .download-option {
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-option:hover {
+            border-color: #00d4ff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .download-option i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .download-option.pdf i { color: #ff006e; }
+        .download-option.excel i { color: #00f5a0; }
+        .download-option.csv i { color: #ffd60a; }
+        .download-option.print i { color: #667eea; }
+
+        .download-option span {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, #00f5a0 0%, #00d4ff 100%);
+            color: #0f1419;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 245, 160, 0.3);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ff006e 0%, #ff4757 100%);
+            color: #fff;
+        }
+
+        /* Preview Modal Styles */
+        .preview-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 20, 25, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 2rem;
+        }
+
+        .preview-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .preview-content {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.98) 0%, rgba(26, 31, 46, 0.98) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 15px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .preview-header h3 {
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.3rem;
+        }
+
+        .preview-header h3 i {
+            font-size: 1.5rem;
+        }
+
+        .preview-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-close:hover {
+            color: #ff006e;
+            background: rgba(255, 0, 110, 0.1);
+        }
+
+        .preview-info {
+            padding: 1rem 2rem;
+            background: rgba(0, 245, 160, 0.05);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .preview-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .preview-info-item i {
+            color: #00d4ff;
+        }
+
+        .preview-info-item strong {
+            color: #00f5a0;
+        }
+
+        .preview-body {
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .preview-section {
+            margin-bottom: 2rem;
+        }
+
+        .preview-section h4 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+        }
+
+        .preview-table th {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .preview-table tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .preview-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 150px;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .preview-bar {
+            flex: 1;
+            background: linear-gradient(to top, #00d4ff, #00f5a0);
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            min-width: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .preview-bar:hover {
+            opacity: 0.8;
+        }
+
+        .preview-bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: #888;
+            white-space: nowrap;
+        }
+
+        .preview-bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #00f5a0;
+            font-weight: 600;
+        }
+
+        .preview-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .preview-stat-card {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .preview-stat-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00f5a0;
+        }
+
+        .preview-stat-card .label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.3rem;
+        }
+
+        .preview-footer {
+            padding: 1rem 2rem;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .preview-footer .note {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .preview-footer .note i {
+            color: #ffd60a;
+            margin-right: 0.5rem;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-icon {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 0.3rem;
+        }
+
+        .metric-label {
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+
+        .metric-change {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: var(--success);
+        }
+
+        .metric-change.negative {
+            color: var(--danger);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .chart-card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 250px;
+            gap: 1rem;
+        }
+
+        .bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .bar-fill {
+            width: 100%;
+            background: var(--gradient-blue);
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .bar:hover .bar-fill {
+            opacity: 0.8;
+            transform: scaleY(1.05);
+        }
+
+        .bar-label {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .bar-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        /* Enhanced Patient Growth Chart */
+        .growth-chart-container {
+            position: relative;
+            padding: 1rem;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 280px;
+            padding: 20px 10px 40px 50px;
+        }
+
+        .y-axis {
+            position: absolute;
+            left: 0;
+            top: 20px;
+            bottom: 40px;
+            width: 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-right: 8px;
+        }
+
+        .y-axis span {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .chart-area {
+            position: relative;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 212, 255, 0.05) 0%, transparent 100%);
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0 10px 0 0;
+        }
+
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .grid-line {
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .bars-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 0 10px;
+        }
+
+        .chart-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 60px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-bar:hover .bar-column {
+            filter: brightness(1.2);
+            transform: scaleY(1.02);
+        }
+
+        .bar-column {
+            width: 70%;
+            background: linear-gradient(to top, #00d4ff, #00f5a0);
+            border-radius: 6px 6px 0 0;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .bar-column::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
+            border-radius: 6px 6px 0 0;
+        }
+
+        .bar-tooltip {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #00f5a0;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .bar-tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid rgba(0, 0, 0, 0.9);
+        }
+
+        .chart-bar:hover .bar-tooltip {
+            opacity: 1;
+        }
+
+        .x-axis {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 10px 0;
+            margin-top: 5px;
+        }
+
+        .x-label {
+            text-align: center;
+            flex: 1;
+            max-width: 60px;
+        }
+
+        .x-label .month {
+            font-size: 0.85rem;
+            color: #aaa;
+            font-weight: 500;
+        }
+
+        .x-label .year {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .chart-summary {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #00f5a0;
+        }
+
+        .summary-value.negative {
+            color: #ff006e;
+        }
+
+        .summary-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.2rem;
+        }
+
+        /* Line chart overlay */
+        .line-chart-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .line-path {
+            fill: none;
+            stroke: #ffd60a;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .line-dot {
+            fill: #ffd60a;
+            stroke: #0f1419;
+            stroke-width: 2;
+        }
+
+        /* Chart type toggle */
+        .chart-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .toggle-btn {
+            padding: 0.4rem 0.8rem;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: #888;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--gradient-blue);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .toggle-btn:hover:not(.active) {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        /* Attractive Neon Glow Chart Styles */
+        .neon-chart-container {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 20, 40, 0.8) 0%, rgba(0, 10, 20, 0.9) 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .neon-chart-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(0, 245, 160, 0.1) 0%, transparent 50%);
+            animation: rotateGradient 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotateGradient {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .neon-bars-wrapper {
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 300px;
+            padding: 20px 0;
+            z-index: 1;
+        }
+
+        .neon-bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 80px;
+        }
+
+        .neon-bar {
+            width: 50px;
+            position: relative;
+            border-radius: 10px 10px 4px 4px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            animation: barGrow 1s ease-out forwards;
+            transform-origin: bottom;
+        }
+
+        @keyframes barGrow {
+            0% { transform: scaleY(0); opacity: 0; }
+            100% { transform: scaleY(1); opacity: 1; }
+        }
+
+        .neon-bar.cyan {
+            background: linear-gradient(180deg, #00ffff 0%, #00d4ff 30%, #00f5a0 70%, #00cc88 100%);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.7),
+                        0 0 50px rgba(0, 212, 255, 0.5),
+                        0 0 75px rgba(0, 245, 160, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 255, 0.5);
+        }
+
+        .neon-bar.purple {
+            background: linear-gradient(180deg, #ff00ff 0%, #e056fd 30%, #9b59b6 70%, #6c3483 100%);
+            box-shadow: 0 0 25px rgba(255, 0, 255, 0.7),
+                        0 0 50px rgba(224, 86, 253, 0.5),
+                        0 0 75px rgba(155, 89, 182, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 0, 255, 0.5);
+        }
+
+        .neon-bar.gold {
+            background: linear-gradient(180deg, #ffff00 0%, #ffd60a 30%, #f39c12 70%, #e67e22 100%);
+            box-shadow: 0 0 25px rgba(255, 255, 0, 0.7),
+                        0 0 50px rgba(255, 214, 10, 0.5),
+                        0 0 75px rgba(243, 156, 18, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 0, 0.5);
+        }
+
+        .neon-bar.pink {
+            background: linear-gradient(180deg, #ff1493 0%, #ff6b9d 30%, #ff006e 70%, #cc0066 100%);
+            box-shadow: 0 0 25px rgba(255, 20, 147, 0.7),
+                        0 0 50px rgba(255, 107, 157, 0.5),
+                        0 0 75px rgba(255, 0, 110, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 20, 147, 0.5);
+        }
+
+        .neon-bar.green {
+            background: linear-gradient(180deg, #00ff00 0%, #00f5a0 30%, #27ae60 70%, #1e8449 100%);
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.7),
+                        0 0 50px rgba(0, 245, 160, 0.5),
+                        0 0 75px rgba(39, 174, 96, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 0, 0.5);
+        }
+
+        .neon-bar.blue {
+            background: linear-gradient(180deg, #00bfff 0%, #74b9ff 30%, #0984e3 70%, #2980b9 100%);
+            box-shadow: 0 0 25px rgba(0, 191, 255, 0.7),
+                        0 0 50px rgba(116, 185, 255, 0.5),
+                        0 0 75px rgba(9, 132, 227, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 191, 255, 0.5);
+        }
+
+        /* Additional vibrant colors */
+        .neon-bar.orange {
+            background: linear-gradient(180deg, #ff7f00 0%, #ff6348 30%, #ee5a24 70%, #d63031 100%);
+            box-shadow: 0 0 25px rgba(255, 127, 0, 0.7),
+                        0 0 50px rgba(255, 99, 72, 0.5),
+                        0 0 75px rgba(238, 90, 36, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 127, 0, 0.5);
+        }
+
+        .neon-bar.teal {
+            background: linear-gradient(180deg, #00ced1 0%, #20b2aa 30%, #008b8b 70%, #006666 100%);
+            box-shadow: 0 0 25px rgba(0, 206, 209, 0.7),
+                        0 0 50px rgba(32, 178, 170, 0.5),
+                        0 0 75px rgba(0, 139, 139, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 206, 209, 0.5);
+        }
+
+        .neon-bar.red {
+            background: linear-gradient(180deg, #ff0000 0%, #ff4757 30%, #e74c3c 70%, #c0392b 100%);
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.7),
+                        0 0 50px rgba(255, 71, 87, 0.5),
+                        0 0 75px rgba(231, 76, 60, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 0, 0, 0.5);
+        }
+
+        .neon-bar.violet {
+            background: linear-gradient(180deg, #9400d3 0%, #8b00ff 30%, #7b68ee 70%, #6a5acd 100%);
+            box-shadow: 0 0 25px rgba(148, 0, 211, 0.7),
+                        0 0 50px rgba(139, 0, 255, 0.5),
+                        0 0 75px rgba(123, 104, 238, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(148, 0, 211, 0.5);
+        }
+
+        .neon-bar.lime {
+            background: linear-gradient(180deg, #32cd32 0%, #7cfc00 30%, #adff2f 70%, #9acd32 100%);
+            box-shadow: 0 0 25px rgba(50, 205, 50, 0.7),
+                        0 0 50px rgba(124, 252, 0, 0.5),
+                        0 0 75px rgba(173, 255, 47, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(50, 205, 50, 0.5);
+        }
+
+        .neon-bar.coral {
+            background: linear-gradient(180deg, #ff7f50 0%, #ff6347 30%, #ff4500 70%, #dc143c 100%);
+            box-shadow: 0 0 25px rgba(255, 127, 80, 0.7),
+                        0 0 50px rgba(255, 99, 71, 0.5),
+                        0 0 75px rgba(255, 69, 0, 0.3),
+                        inset 0 -25px 35px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 127, 80, 0.5);
+        }
+
+        .neon-bar:hover {
+            transform: scaleY(1.08) scaleX(1.15);
+            filter: brightness(1.3) saturate(1.2);
+            z-index: 10;
+        }
+
+        .neon-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.2) 30%, transparent 100%);
+            border-radius: 10px 10px 0 0;
+        }
+
+        .neon-bar::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 10px;
+            background: inherit;
+            filter: blur(15px);
+            opacity: 0.6;
+            border-radius: 50%;
+        }
+
+        .neon-value {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            white-space: nowrap;
+            opacity: 0;
+            transition: all 0.3s ease;
+            border: 2px solid;
+            border-color: inherit;
+            z-index: 10;
+        }
+
+        .neon-bar:hover .neon-value {
+            opacity: 1;
+            top: -50px;
+        }
+
+        .neon-label {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .neon-sublabel {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* Wave animation at bottom */
+        .chart-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 212, 255, 0.1) 100%);
+            overflow: hidden;
+        }
+
+        .chart-wave::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -100%;
+            width: 300%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'%3E%3Cpath fill='rgba(0, 212, 255, 0.1)' d='M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C57.1,118.92,156.64,69.06,321.39,56.44Z'/%3E%3C/svg%3E");
+            background-size: 400px 60px;
+            animation: wave 8s linear infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(400px); }
+        }
+
+        /* Stats cards below chart */
+        .neon-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .neon-stat-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 245, 160, 0.05) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .neon-stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .neon-stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .neon-stat-card:hover::before {
+            left: 100%;
+        }
+
+        .neon-stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00f5a0 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .neon-stat-value.negative {
+            background: linear-gradient(135deg, #ff006e 0%, #ff6b9d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .neon-stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Neon bars wrapper */
+        .neon-bars-wrapper {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 100%;
+            padding: 1rem 2rem 2.5rem 2rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 2;
+            gap: 0.5rem;
+        }
+
+        .neon-chart-area {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .neon-trend-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .neon-trend-line .trend-path {
+            fill: none;
+            stroke: #ffd60a;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 8px rgba(255, 214, 10, 0.8));
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 2s ease forwards 0.5s;
+        }
+
+        .neon-trend-line .trend-segment {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 500;
+            stroke-dashoffset: 500;
+            animation: drawLine 1s ease forwards;
+        }
+
+        .neon-trend-line .trend-area {
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 1s;
+        }
+
+        .neon-trend-line .trend-dot {
+            opacity: 0;
+            animation: popIn 0.4s ease forwards;
+        }
+
+        .neon-trend-line .trend-dot-inner {
+            opacity: 0;
+            animation: popIn 0.3s ease forwards;
+        }
+
+        .neon-trend-line .trend-dot:nth-child(1) { animation-delay: 1.2s; }
+        .neon-trend-line .trend-dot:nth-child(2) { animation-delay: 1.4s; }
+        .neon-trend-line .trend-dot:nth-child(3) { animation-delay: 1.6s; }
+        .neon-trend-line .trend-dot:nth-child(4) { animation-delay: 1.8s; }
+        .neon-trend-line .trend-dot:nth-child(5) { animation-delay: 2.0s; }
+        .neon-trend-line .trend-dot:nth-child(6) { animation-delay: 2.2s; }
+
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 0.3; }
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0); }
+            70% { transform: scale(1.3); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .neon-bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 80px;
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .neon-month {
+            margin-top: 0.8rem;
+            font-size: 0.85rem;
+            color: #aaa;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Pulse animation for active data */
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.8); }
+        }
+
+        .neon-bar.pulse {
+            animation: pulse 2s ease-in-out infinite, barGrow 1s ease-out forwards;
+        }
+
+        .report-list {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .report-list h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .report-info {
+            flex: 1;
+        }
+
+        .report-name {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.3rem;
+        }
+
+        .report-details {
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bar-chart {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-bar"></i> Analytics & Reports</h1>
+            <a href="/hospital/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="startDate">From:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="filter-group">
+                <label for="endDate">To:</label>
+                <input type="date" id="endDate">
+            </div>
+            <div class="filter-group">
+                <label for="dateRange">Quick Range:</label>
+                <select id="dateRange" onchange="applyQuickRange()">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="365">This Year</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="department">Department:</label>
+                <select id="department" onchange="filterData()">
+                    <option value="all">All Departments</option>
+                    <option value="cardiology">Cardiology</option>
+                    <option value="pediatrics">Pediatrics</option>
+                    <option value="orthopedics">Orthopedics</option>
+                    <option value="neurology">Neurology</option>
+                    <option value="dermatology">Dermatology</option>
+                    <option value="oncology">Oncology</option>
+                </select>
+            </div>
+            <button class="btn-apply" onclick="filterData()">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+        </div>
+
+        <div class="filter-info">
+            <div class="filter-info-text">
+                Showing data for: <strong id="currentDepartment">All Departments</strong> | 
+                Period: <strong id="currentPeriod">Last 30 Days</strong> |
+                Records: <strong id="totalRecords">1,245</strong>
+            </div>
+            <button class="btn" onclick="exportAllReports()">
+                <i class="fas fa-file-export"></i> Export All
+            </button>
+        </div>
+
+        <div class="metrics-grid" id="metricsGrid">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="metric-value" id="totalPatients">1,245</div>
+                <div class="metric-label">Total Patients</div>
+                <div class="metric-change" id="patientsChange">+12% from last period</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="metric-value" id="totalAppointments">456</div>
+                <div class="metric-label">Appointments</div>
+                <div class="metric-change" id="appointmentsChange">+8% from last period</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="metric-value" id="totalDoctors">24</div>
+                <div class="metric-label">Active Doctors</div>
+                <div class="metric-change" id="doctorsChange">+2 new doctors</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="metric-value" id="totalRevenue">$124K</div>
+                <div class="metric-label">Revenue</div>
+                <div class="metric-change" id="revenueChange">+15% from last period</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-bed"></i>
+                </div>
+                <div class="metric-value" id="bedOccupancy">78%</div>
+                <div class="metric-label">Bed Occupancy</div>
+                <div class="metric-change" id="bedChange">-5% from last period</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-percent"></i>
+                </div>
+                <div class="metric-value" id="successRate">94%</div>
+                <div class="metric-label">Success Rate</div>
+                <div class="metric-change" id="successChange">+3% from last period</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card" style="padding: 0; overflow: hidden;">
+                <div class="neon-chart-container">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; position: relative; z-index: 1;">
+                        <h3 style="margin-bottom: 0; color: #fff; font-size: 1.3rem;">
+                            <i class="fas fa-chart-bar" style="color: #00f5a0; margin-right: 0.5rem;"></i>
+                            Patient Growth - <span id="chartPeriod" style="color: #00d4ff;">Monthly</span>
+                        </h3>
+                        <div style="color: #888; font-size: 0.85rem;">
+                            <i class="fas fa-filter" style="color: #00d4ff; margin-right: 0.3rem;"></i>
+                            Use filters above to change data
+                        </div>
+                    </div>
+                    
+                    <div class="chart-legend" style="position: relative; z-index: 1;">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: linear-gradient(to right, #00d4ff, #00f5a0);"></div>
+                            <span style="color: #aaa;">Patient Admissions</span>
+                        </div>
+                        <div class="legend-item" id="trendLegend">
+                            <div class="legend-dot" style="background: linear-gradient(to right, #00ffff, #ff00ff, #ffff00);"></div>
+                            <span style="color: #aaa;">Trend Line</span>
+                        </div>
+                    </div>
+
+                    <!-- Neon Bar Chart with Trend Line -->
+                    <div class="neon-chart-area" style="position: relative; height: 320px; z-index: 1;">
+                        <div class="neon-bars-wrapper" id="neonChart"></div>
+                        <svg class="neon-trend-line" id="neonTrendSvg"></svg>
+                    </div>
+
+                    <div class="chart-wave"></div>
+
+                    <div class="neon-stats">
+                        <div class="neon-stat-card">
+                            <div class="neon-stat-value" id="totalGrowthNeon">+18%</div>
+                            <div class="neon-stat-label">Total Growth</div>
+                        </div>
+                        <div class="neon-stat-card">
+                            <div class="neon-stat-value" id="avgPatientsNeon">198</div>
+                            <div class="neon-stat-label">Avg Monthly</div>
+                        </div>
+                        <div class="neon-stat-card">
+                            <div class="neon-stat-value" id="peakMonthNeon">May</div>
+                            <div class="neon-stat-label">Peak Month</div>
+                        </div>
+                        <div class="neon-stat-card">
+                            <div class="neon-stat-value" id="totalPatientsPeriodNeon">1,173</div>
+                            <div class="neon-stat-label">Total</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-pie"></i> Department Distribution</h3>
+                <div id="departmentChart" style="padding: 2rem; text-align: center;">
+                    <div style="display: inline-block; text-align: left; line-height: 2;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-list">
+            <h3><i class="fas fa-file-alt"></i> Available Reports</h3>
+            <div id="reportsList"></div>
+        </div>
+    </div>
+
+    <!-- Download Modal -->
+    <div class="download-modal" id="downloadModal">
+        <div class="download-content">
+            <div class="download-header">
+                <h3><i class="fas fa-download"></i> <span id="downloadTitle">Download Report</span></h3>
+                <button class="download-close" onclick="closeDownloadModal()">&times;</button>
+            </div>
+            <p style="color: #aaa; margin-bottom: 1rem;">Select format for: <strong id="reportNameDisplay" style="color: #00f5a0;"></strong></p>
+            <div class="download-options">
+                <div class="download-option pdf" onclick="downloadReport('pdf')">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>PDF</span>
+                </div>
+                <div class="download-option excel" onclick="downloadReport('excel')">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Excel</span>
+                </div>
+                <div class="download-option csv" onclick="downloadReport('csv')">
+                    <i class="fas fa-file-csv"></i>
+                    <span>CSV</span>
+                </div>
+                <div class="download-option print" onclick="downloadReport('print')">
+                    <i class="fas fa-print"></i>
+                    <span>Print</span>
+                </div>
+            </div>
+            <div style="text-align: center; color: #888; font-size: 0.85rem;">
+                <i class="fas fa-info-circle"></i> Reports include data for selected date range and department
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <h3><i class="fas fa-eye"></i> <span id="previewTitle">Report Preview</span></h3>
+                <button class="preview-close" onclick="closePreviewModal()">&times;</button>
+            </div>
+            <div class="preview-info">
+                <div class="preview-info-item">
+                    <i class="fas fa-building"></i> Department: <strong id="previewDepartment">All Departments</strong>
+                </div>
+                <div class="preview-info-item">
+                    <i class="fas fa-calendar"></i> Period: <strong id="previewPeriod">Last 30 Days</strong>
+                </div>
+                <div class="preview-info-item">
+                    <i class="fas fa-clock"></i> Generated: <strong id="previewDate"></strong>
+                </div>
+            </div>
+            <div class="preview-body" id="previewBody">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <div class="preview-footer">
+                <div class="note">
+                    <i class="fas fa-info-circle"></i> This is a preview. Download the full report for complete data.
+                </div>
+                <div class="preview-actions">
+                    <button class="btn" onclick="closePreviewModal()">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                    <button class="btn" style="background: var(--gradient-blue); border: none; color: #fff;" onclick="downloadFromPreview()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Department data with different metrics
+        const departmentData = {
+            all: {
+                patients: 1245, appointments: 456, doctors: 24, revenue: 124000, bedOccupancy: 78, successRate: 94,
+                patientsChange: '+12%', appointmentsChange: '+8%', doctorsChange: '+2', revenueChange: '+15%', bedChange: '-5%', successChange: '+3%',
+                chartData: [150, 189, 215, 176, 245, 198],
+                distribution: { Cardiology: 28, Pediatrics: 22, Orthopedics: 25, Neurology: 15, Other: 10 }
+            },
+            cardiology: {
+                patients: 348, appointments: 128, doctors: 6, revenue: 45000, bedOccupancy: 85, successRate: 96,
+                patientsChange: '+18%', appointmentsChange: '+12%', doctorsChange: '+1', revenueChange: '+22%', bedChange: '+5%', successChange: '+4%',
+                chartData: [45, 52, 68, 55, 78, 50],
+                distribution: { 'Heart Surgery': 35, 'Cardiac Care': 40, 'Echo Tests': 15, 'Other': 10 }
+            },
+            pediatrics: {
+                patients: 274, appointments: 100, doctors: 5, revenue: 28000, bedOccupancy: 72, successRate: 98,
+                patientsChange: '+8%', appointmentsChange: '+5%', doctorsChange: '0', revenueChange: '+10%', bedChange: '-8%', successChange: '+2%',
+                chartData: [30, 42, 48, 38, 56, 60],
+                distribution: { 'General Care': 45, 'Vaccinations': 30, 'Emergencies': 15, 'Other': 10 }
+            },
+            orthopedics: {
+                patients: 311, appointments: 114, doctors: 5, revenue: 32000, bedOccupancy: 80, successRate: 92,
+                patientsChange: '+15%', appointmentsChange: '+10%', doctorsChange: '+1', revenueChange: '+18%', bedChange: '+2%', successChange: '+5%',
+                chartData: [38, 45, 52, 42, 68, 66],
+                distribution: { 'Surgeries': 40, 'Fractures': 35, 'Therapy': 20, 'Other': 5 }
+            },
+            neurology: {
+                patients: 187, appointments: 68, doctors: 4, revenue: 22000, bedOccupancy: 65, successRate: 89,
+                patientsChange: '+5%', appointmentsChange: '+3%', doctorsChange: '0', revenueChange: '+8%', bedChange: '-10%', successChange: '+1%',
+                chartData: [22, 28, 32, 25, 40, 40],
+                distribution: { 'Brain Scans': 35, 'Consultations': 40, 'Surgeries': 15, 'Other': 10 }
+            },
+            dermatology: {
+                patients: 156, appointments: 58, doctors: 3, revenue: 15000, bedOccupancy: 45, successRate: 97,
+                patientsChange: '+20%', appointmentsChange: '+15%', doctorsChange: '0', revenueChange: '+25%', bedChange: '+3%', successChange: '+2%',
+                chartData: [18, 24, 28, 22, 35, 29],
+                distribution: { 'Skin Care': 50, 'Procedures': 30, 'Consultations': 15, 'Other': 5 }
+            },
+            oncology: {
+                patients: 98, appointments: 36, doctors: 4, revenue: 48000, bedOccupancy: 90, successRate: 85,
+                patientsChange: '+3%', appointmentsChange: '+2%', doctorsChange: '0', revenueChange: '+12%', bedChange: '+8%', successChange: '+1%',
+                chartData: [12, 15, 18, 14, 22, 17],
+                distribution: { 'Chemotherapy': 45, 'Radiation': 30, 'Consultations': 20, 'Other': 5 }
+            }
+        };
+
+        // Date range multipliers
+        const rangeMultipliers = {
+            7: 0.25,
+            30: 1,
+            90: 2.8,
+            365: 10
+        };
+
+        // Reports data
+        const reportsData = [
+            { id: 'patient', name: 'Monthly Patient Report', description: 'Comprehensive patient statistics including admissions, discharges, and demographics', icon: 'fa-users', updated: 'Updated daily' },
+            { id: 'appointment', name: 'Appointment Analysis', description: 'Appointment trends, no-shows, and scheduling patterns', icon: 'fa-calendar-check', updated: 'Last 30 days' },
+            { id: 'staff', name: 'Staff Performance', description: 'Staff productivity metrics, attendance, and performance reviews', icon: 'fa-user-nurse', updated: 'Weekly' },
+            { id: 'financial', name: 'Financial Report', description: 'Revenue analysis, expense breakdown, and billing summaries', icon: 'fa-dollar-sign', updated: 'Quarterly' },
+            { id: 'department', name: 'Department Analytics', description: 'Department-wise performance, resource utilization, and trends', icon: 'fa-hospital', updated: 'Real-time' },
+            { id: 'system', name: 'System Health Report', description: 'System performance, security audits, and uptime statistics', icon: 'fa-server', updated: 'Real-time' }
+        ];
+
+        let currentReport = null;
+        let currentDepartment = 'all';
+        let currentRange = 30;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDates();
+            renderReports();
+            filterData();
+        });
+
+        // Initialize dates
+        function initializeDates() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+        }
+
+        // Apply quick range
+        function applyQuickRange() {
+            const range = document.getElementById('dateRange').value;
+            if (range === 'custom') return;
+            
+            const days = parseInt(range);
+            const today = new Date();
+            const startDate = new Date(today);
+            startDate.setDate(today.getDate() - days);
+            
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            
+            filterData();
+        }
+
+        // Filter data based on selections
+        function filterData() {
+            showLoading();
+            
+            currentDepartment = document.getElementById('department').value;
+            const rangeSelect = document.getElementById('dateRange');
+            currentRange = rangeSelect.value === 'custom' ? 30 : parseInt(rangeSelect.value);
+            
+            const data = departmentData[currentDepartment];
+            const multiplier = rangeMultipliers[currentRange] || 1;
+            
+            // Update metrics with animation
+            setTimeout(() => {
+                animateValue('totalPatients', Math.round(data.patients * multiplier));
+                animateValue('totalAppointments', Math.round(data.appointments * multiplier));
+                document.getElementById('totalDoctors').textContent = data.doctors;
+                document.getElementById('totalRevenue').textContent = '$' + Math.round(data.revenue * multiplier / 1000) + 'K';
+                document.getElementById('bedOccupancy').textContent = data.bedOccupancy + '%';
+                document.getElementById('successRate').textContent = data.successRate + '%';
+                
+                // Update changes
+                document.getElementById('patientsChange').textContent = data.patientsChange + ' from last period';
+                document.getElementById('appointmentsChange').textContent = data.appointmentsChange + ' from last period';
+                document.getElementById('doctorsChange').textContent = data.doctorsChange + ' new doctors';
+                document.getElementById('revenueChange').textContent = data.revenueChange + ' from last period';
+                document.getElementById('bedChange').textContent = data.bedChange + ' from last period';
+                document.getElementById('successChange').textContent = data.successChange + ' from last period';
+                
+                // Update change colors
+                updateChangeColors();
+                
+                // Update charts
+                renderPatientChart(data.chartData, multiplier);
+                renderDepartmentChart(data.distribution);
+                
+                // Update info bar
+                const deptName = currentDepartment === 'all' ? 'All Departments' : currentDepartment.charAt(0).toUpperCase() + currentDepartment.slice(1);
+                document.getElementById('currentDepartment').textContent = deptName;
+                document.getElementById('currentPeriod').textContent = document.getElementById('dateRange').selectedOptions[0].text;
+                document.getElementById('totalRecords').textContent = Math.round(data.patients * multiplier).toLocaleString();
+                
+                hideLoading();
+            }, 500);
+        }
+
+        // Animate number values
+        function animateValue(elementId, newValue) {
+            const element = document.getElementById(elementId);
+            const current = parseInt(element.textContent.replace(/,/g, '')) || 0;
+            const increment = (newValue - current) / 20;
+            let value = current;
+            
+            const timer = setInterval(() => {
+                value += increment;
+                if ((increment > 0 && value >= newValue) || (increment < 0 && value <= newValue)) {
+                    value = newValue;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.round(value).toLocaleString();
+            }, 30);
+        }
+
+        // Update change indicator colors
+        function updateChangeColors() {
+            const changes = document.querySelectorAll('.metric-change');
+            changes.forEach(el => {
+                if (el.textContent.includes('-')) {
+                    el.classList.add('negative');
+                } else {
+                    el.classList.remove('negative');
+                }
+            });
+        }
+
+        // Render patient growth chart
+        let currentChartStyle = 'neon';
+        let currentChartData = [];
+        let currentMultiplier = 1;
+        const neonColors = ['cyan', 'purple', 'gold', 'pink', 'green', 'blue', 'orange', 'teal', 'red', 'violet', 'lime', 'coral'];
+        const trendColors = ['#00ffff', '#ff00ff', '#ffff00', '#ff1493', '#00ff00', '#00bfff'];
+
+        function renderPatientChart(data, multiplier) {
+            currentChartData = data;
+            currentMultiplier = multiplier;
+            
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June'];
+            const scaledData = data.map(v => Math.round(v * multiplier));
+            const maxValue = Math.max(...scaledData);
+            
+            // Render Neon Chart with multi-color bars and trend line
+            renderNeonChart(scaledData, months, maxValue);
+            
+            // Update summary stats
+            const total = scaledData.reduce((a, b) => a + b, 0);
+            const avg = Math.round(total / scaledData.length);
+            const peakIndex = scaledData.indexOf(maxValue);
+            const growth = ((scaledData[scaledData.length - 1] - scaledData[0]) / scaledData[0] * 100).toFixed(0);
+            
+            // Update Neon Stats
+            document.getElementById('totalGrowthNeon').textContent = (growth >= 0 ? '+' : '') + growth + '%';
+            document.getElementById('avgPatientsNeon').textContent = avg.toLocaleString();
+            document.getElementById('peakMonthNeon').textContent = fullMonths[peakIndex];
+            document.getElementById('totalPatientsPeriodNeon').textContent = total.toLocaleString();
+        }
+
+        // Render Neon Bar Chart with Trend Line
+        function renderNeonChart(data, months, maxValue) {
+            const neonChart = document.getElementById('neonChart');
+            const trendSvg = document.getElementById('neonTrendSvg');
+            
+            // Render bars
+            neonChart.innerHTML = data.map((value, index) => {
+                const height = (value / maxValue) * 100;
+                const color = neonColors[index % neonColors.length];
+                const prevValue = index > 0 ? data[index - 1] : value;
+                const change = ((value - prevValue) / prevValue * 100).toFixed(1);
+                const changeIcon = change >= 0 ? '↑' : '↓';
+                const changeColor = change >= 0 ? '#00f5a0' : '#ff006e';
+                
+                return `
+                    <div class="neon-bar-group" style="animation-delay: ${index * 0.1}s;">
+                        <div class="neon-bar ${color}" style="height: ${height}%;">
+                            <div class="neon-value">
+                                <strong>${value.toLocaleString()}</strong>
+                                ${index > 0 ? `<span style="display: block; color: ${changeColor}; font-size: 0.7rem;">${changeIcon} ${Math.abs(change)}%</span>` : '<span style="display: block; color: #888; font-size: 0.7rem;">Base</span>'}
+                            </div>
+                        </div>
+                        <span class="neon-month">${months[index]}</span>
+                    </div>
+                `;
+            }).join('');
+
+            // Render trend line on top of bars
+            renderNeonTrendLine(data, maxValue);
+        }
+
+        // Render Neon Trend Line SVG overlay with multi-color gradient
+        function renderNeonTrendLine(data, maxValue) {
+            const svg = document.getElementById('neonTrendSvg');
+            if (!svg) return;
+
+            const padding = 8; // percentage padding from edges
+            const topPadding = 5; // percentage from top
+            const bottomPadding = 15; // percentage from bottom (for month labels)
+            const chartHeight = 100 - topPadding - bottomPadding;
+
+            // Calculate points - center each point on its bar
+            const points = data.map((value, index) => {
+                const barWidth = (100 - padding * 2) / data.length;
+                const x = padding + (index * barWidth) + (barWidth / 2);
+                const normalizedValue = (value / maxValue) * chartHeight;
+                const y = 100 - bottomPadding - normalizedValue;
+                return { x, y, value, color: trendColors[index % trendColors.length] };
+            });
+
+            // Create smooth curve path using bezier curves
+            let pathD = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i++) {
+                const prev = points[i - 1];
+                const curr = points[i];
+                const cp1x = prev.x + (curr.x - prev.x) / 3;
+                const cp2x = prev.x + (curr.x - prev.x) * 2 / 3;
+                pathD += ` C ${cp1x} ${prev.y}, ${cp2x} ${curr.y}, ${curr.x} ${curr.y}`;
+            }
+
+            // Create area path for gradient fill
+            let areaD = pathD;
+            areaD += ` L ${points[points.length - 1].x} ${100 - bottomPadding}`;
+            areaD += ` L ${points[0].x} ${100 - bottomPadding} Z`;
+
+            // Create individual colored line segments
+            let segments = '';
+            for (let i = 1; i < points.length; i++) {
+                const prev = points[i - 1];
+                const curr = points[i];
+                const cp1x = prev.x + (curr.x - prev.x) / 3;
+                const cp2x = prev.x + (curr.x - prev.x) * 2 / 3;
+                const segmentPath = `M ${prev.x} ${prev.y} C ${cp1x} ${prev.y}, ${cp2x} ${curr.y}, ${curr.x} ${curr.y}`;
+                segments += `<path d="${segmentPath}" class="trend-segment" stroke="url(#gradient${i})" filter="url(#glow)" style="animation-delay: ${0.5 + i * 0.15}s;" />`;
+            }
+
+            svg.innerHTML = `
+                <defs>
+                    <!-- Multi-color gradient for the area fill -->
+                    <linearGradient id="rainbowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#00ffff;stop-opacity:0.5" />
+                        <stop offset="20%" style="stop-color:#ff00ff;stop-opacity:0.4" />
+                        <stop offset="40%" style="stop-color:#ffff00;stop-opacity:0.4" />
+                        <stop offset="60%" style="stop-color:#ff1493;stop-opacity:0.4" />
+                        <stop offset="80%" style="stop-color:#00ff00;stop-opacity:0.4" />
+                        <stop offset="100%" style="stop-color:#00bfff;stop-opacity:0.5" />
+                    </linearGradient>
+                    <linearGradient id="rainbowAreaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ffd60a;stop-opacity:0.5" />
+                        <stop offset="50%" style="stop-color:#ff6b9d;stop-opacity:0.3" />
+                        <stop offset="100%" style="stop-color:#00d4ff;stop-opacity:0" />
+                    </linearGradient>
+                    <!-- Individual segment gradients -->
+                    ${points.slice(1).map((p, i) => `
+                        <linearGradient id="gradient${i+1}" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:${points[i].color}" />
+                            <stop offset="100%" style="stop-color:${p.color}" />
+                        </linearGradient>
+                    `).join('')}
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <filter id="dotGlow">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <path d="${areaD}" fill="url(#rainbowAreaGradient)" class="trend-area" />
+                ${segments}
+                ${points.map((p, i) => `
+                    <circle cx="${p.x}%" cy="${p.y}%" r="10" fill="${p.color}" class="trend-dot" filter="url(#dotGlow)" style="animation-delay: ${1.2 + i * 0.2}s;">
+                        <title>${p.value.toLocaleString()} patients</title>
+                    </circle>
+                    <circle cx="${p.x}%" cy="${p.y}%" r="5" fill="#fff" class="trend-dot-inner" style="animation-delay: ${1.3 + i * 0.2}s;" />
+                `).join('')}
+            `;
+        }
+
+        // Animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Render department distribution chart
+        function renderDepartmentChart(distribution) {
+            const colors = ['#00d4ff', '#00f5a0', '#ff006e', '#ffd60a', '#667eea', '#e056fd'];
+            const chart = document.getElementById('departmentChart');
+            
+            let html = '<div style="display: inline-block; text-align: left; line-height: 2.5;">';
+            let colorIndex = 0;
+            
+            for (const [key, value] of Object.entries(distribution)) {
+                html += `
+                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                        <i class="fas fa-circle" style="color: ${colors[colorIndex % colors.length]};"></i>
+                        <span style="color: #fff; min-width: 120px;">${key}:</span>
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; width: 150px; overflow: hidden;">
+                            <div style="background: ${colors[colorIndex % colors.length]}; height: 100%; width: ${value}%; border-radius: 10px;"></div>
+                        </div>
+                        <span style="color: #00f5a0; font-weight: 600;">${value}%</span>
+                    </div>
+                `;
+                colorIndex++;
+            }
+            
+            html += '</div>';
+            chart.innerHTML = html;
+        }
+
+        // Render reports list
+        function renderReports() {
+            const container = document.getElementById('reportsList');
+            container.innerHTML = reportsData.map(report => `
+                <div class="report-item" id="report-${report.id}">
+                    <div class="report-info">
+                        <div class="report-name"><i class="fas ${report.icon}" style="color: #00d4ff; margin-right: 0.5rem;"></i>${report.name}</div>
+                        <div class="report-details">${report.description} - ${report.updated}</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn" onclick="previewReport('${report.id}')">
+                            <i class="fas fa-eye"></i> Preview
+                        </button>
+                        <button class="btn" style="background: var(--gradient-blue); border: none; color: #fff;" onclick="openDownloadModal('${report.id}', '${report.name}')">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Preview report
+        function previewReport(reportId) {
+            const report = reportsData.find(r => r.id === reportId);
+            if (!report) {
+                showToast('Report not found!', 'error');
+                return;
+            }
+            
+            currentReport = reportId;
+            showLoading();
+            
+            setTimeout(() => {
+                const data = generateReportData(reportId);
+                const department = document.getElementById('department').selectedOptions[0].text;
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                // Set header info
+                document.getElementById('previewTitle').textContent = report.name;
+                document.getElementById('previewDepartment').textContent = department;
+                document.getElementById('previewPeriod').textContent = `${startDate} to ${endDate}`;
+                document.getElementById('previewDate').textContent = new Date().toLocaleString();
+                
+                // Generate preview content based on report type
+                const previewBody = document.getElementById('previewBody');
+                previewBody.innerHTML = generatePreviewContent(reportId, report, data);
+                
+                hideLoading();
+                document.getElementById('previewModal').classList.add('show');
+            }, 500);
+        }
+
+        // Generate preview content
+        function generatePreviewContent(reportId, report, data) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            
+            let content = `
+                <div class="preview-section">
+                    <h4><i class="fas fa-chart-line"></i> Key Metrics</h4>
+                    <div class="preview-stats-grid">
+                        <div class="preview-stat-card">
+                            <div class="value">${data.totalPatients.toLocaleString()}</div>
+                            <div class="label">Total Patients</div>
+                        </div>
+                        <div class="preview-stat-card">
+                            <div class="value">${data.totalAppointments.toLocaleString()}</div>
+                            <div class="label">Appointments</div>
+                        </div>
+                        <div class="preview-stat-card">
+                            <div class="value">${data.totalDoctors}</div>
+                            <div class="label">Doctors</div>
+                        </div>
+                        <div class="preview-stat-card">
+                            <div class="value">$${(data.revenue / 1000).toFixed(0)}K</div>
+                            <div class="label">Revenue</div>
+                        </div>
+                        <div class="preview-stat-card">
+                            <div class="value">${data.bedOccupancy}%</div>
+                            <div class="label">Bed Occupancy</div>
+                        </div>
+                        <div class="preview-stat-card">
+                            <div class="value">${data.successRate}%</div>
+                            <div class="label">Success Rate</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add specific content based on report type
+            switch(reportId) {
+                case 'patient':
+                    content += generatePatientReportPreview(data, months);
+                    break;
+                case 'appointment':
+                    content += generateAppointmentReportPreview(data, months);
+                    break;
+                case 'staff':
+                    content += generateStaffReportPreview(data);
+                    break;
+                case 'financial':
+                    content += generateFinancialReportPreview(data, months);
+                    break;
+                case 'department':
+                    content += generateDepartmentReportPreview(data);
+                    break;
+                case 'system':
+                    content += generateSystemReportPreview();
+                    break;
+                default:
+                    content += generateGenericReportPreview(data, months);
+            }
+            
+            return content;
+        }
+
+        // Patient Report Preview
+        function generatePatientReportPreview(data, months) {
+            const maxValue = Math.max(...data.chartData);
+            return `
+                <div class="preview-section">
+                    <h4><i class="fas fa-users"></i> Patient Admissions Trend</h4>
+                    <div class="preview-chart" style="margin-bottom: 2rem;">
+                        ${data.chartData.map((value, index) => `
+                            <div class="preview-bar" style="height: ${(value / maxValue) * 100}%;">
+                                <span class="preview-bar-value">${value}</span>
+                                <span class="preview-bar-label">${months[index]}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <h4><i class="fas fa-table"></i> Patient Details</h4>
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>New Admissions</td><td>${Math.round(data.totalPatients * 0.35)}</td><td>35%</td><td><span style="color: #00f5a0;">↑ Increasing</span></td></tr>
+                            <tr><td>Discharged</td><td>${Math.round(data.totalPatients * 0.30)}</td><td>30%</td><td><span style="color: #00f5a0;">↑ Increasing</span></td></tr>
+                            <tr><td>Under Treatment</td><td>${Math.round(data.totalPatients * 0.25)}</td><td>25%</td><td><span style="color: #ffd60a;">→ Stable</span></td></tr>
+                            <tr><td>Critical Care</td><td>${Math.round(data.totalPatients * 0.10)}</td><td>10%</td><td><span style="color: #ff006e;">↓ Decreasing</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Appointment Report Preview
+        function generateAppointmentReportPreview(data, months) {
+            return `
+                <div class="preview-section">
+                    <h4><i class="fas fa-calendar-check"></i> Appointment Statistics</h4>
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Scheduled</th>
+                                <th>Completed</th>
+                                <th>No-Shows</th>
+                                <th>Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>General Checkup</td><td>${Math.round(data.totalAppointments * 0.4)}</td><td>${Math.round(data.totalAppointments * 0.36)}</td><td>${Math.round(data.totalAppointments * 0.04)}</td><td>90%</td></tr>
+                            <tr><td>Follow-up</td><td>${Math.round(data.totalAppointments * 0.25)}</td><td>${Math.round(data.totalAppointments * 0.23)}</td><td>${Math.round(data.totalAppointments * 0.02)}</td><td>92%</td></tr>
+                            <tr><td>Specialist Consultation</td><td>${Math.round(data.totalAppointments * 0.20)}</td><td>${Math.round(data.totalAppointments * 0.18)}</td><td>${Math.round(data.totalAppointments * 0.02)}</td><td>90%</td></tr>
+                            <tr><td>Emergency</td><td>${Math.round(data.totalAppointments * 0.15)}</td><td>${Math.round(data.totalAppointments * 0.15)}</td><td>0</td><td>100%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="preview-section">
+                    <h4><i class="fas fa-clock"></i> Peak Hours Analysis</h4>
+                    <div class="preview-stats-grid">
+                        <div class="preview-stat-card"><div class="value">9-10 AM</div><div class="label">Busiest Hour</div></div>
+                        <div class="preview-stat-card"><div class="value">Monday</div><div class="label">Busiest Day</div></div>
+                        <div class="preview-stat-card"><div class="value">25 min</div><div class="label">Avg Wait Time</div></div>
+                        <div class="preview-stat-card"><div class="value">45 min</div><div class="label">Avg Consultation</div></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Staff Report Preview
+        function generateStaffReportPreview(data) {
+            return `
+                <div class="preview-section">
+                    <h4><i class="fas fa-user-md"></i> Staff Performance</h4>
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Staff Type</th>
+                                <th>Count</th>
+                                <th>Avg Rating</th>
+                                <th>Patients Handled</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Doctors</td><td>${data.totalDoctors}</td><td>4.8/5.0</td><td>${Math.round(data.totalPatients / data.totalDoctors)}</td><td><span style="color: #00f5a0;">Excellent</span></td></tr>
+                            <tr><td>Nurses</td><td>${data.totalDoctors * 2}</td><td>4.6/5.0</td><td>${Math.round(data.totalPatients / (data.totalDoctors * 2))}</td><td><span style="color: #00f5a0;">Excellent</span></td></tr>
+                            <tr><td>Technicians</td><td>${Math.round(data.totalDoctors * 0.5)}</td><td>4.5/5.0</td><td>${Math.round(data.totalAppointments * 0.3)}</td><td><span style="color: #ffd60a;">Good</span></td></tr>
+                            <tr><td>Admin Staff</td><td>${Math.round(data.totalDoctors * 0.4)}</td><td>4.4/5.0</td><td>N/A</td><td><span style="color: #00f5a0;">Excellent</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="preview-section">
+                    <h4><i class="fas fa-chart-pie"></i> Attendance Summary</h4>
+                    <div class="preview-stats-grid">
+                        <div class="preview-stat-card"><div class="value">96%</div><div class="label">Attendance Rate</div></div>
+                        <div class="preview-stat-card"><div class="value">2.1</div><div class="label">Avg Sick Days</div></div>
+                        <div class="preview-stat-card"><div class="value">8.5 hrs</div><div class="label">Avg Work Hours</div></div>
+                        <div class="preview-stat-card"><div class="value">12</div><div class="label">Overtime Hours</div></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Financial Report Preview
+        function generateFinancialReportPreview(data, months) {
+            const maxValue = Math.max(...data.chartData) * 100;
+            return `
+                <div class="preview-section">
+                    <h4><i class="fas fa-dollar-sign"></i> Revenue Trend</h4>
+                    <div class="preview-chart" style="margin-bottom: 2rem;">
+                        ${data.chartData.map((value, index) => `
+                            <div class="preview-bar" style="height: ${(value * 100 / maxValue) * 100}%; background: linear-gradient(to top, #00f5a0, #ffd60a);">
+                                <span class="preview-bar-value">$${(value * 100 / 1000).toFixed(0)}K</span>
+                                <span class="preview-bar-label">${months[index]}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <h4><i class="fas fa-receipt"></i> Financial Summary</h4>
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>% of Total</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Patient Services</td><td>$${(data.revenue * 0.45 / 1000).toFixed(0)}K</td><td>45%</td><td><span style="color: #00f5a0;">↑ +12%</span></td></tr>
+                            <tr><td>Lab & Diagnostics</td><td>$${(data.revenue * 0.25 / 1000).toFixed(0)}K</td><td>25%</td><td><span style="color: #00f5a0;">↑ +8%</span></td></tr>
+                            <tr><td>Pharmacy</td><td>$${(data.revenue * 0.20 / 1000).toFixed(0)}K</td><td>20%</td><td><span style="color: #ffd60a;">→ +2%</span></td></tr>
+                            <tr><td>Other Services</td><td>$${(data.revenue * 0.10 / 1000).toFixed(0)}K</td><td>10%</td><td><span style="color: #00f5a0;">↑ +5%</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Department Report Preview
+        function generateDepartmentReportPreview(data) {
+            return `
+                <div class="preview-section">
+                    <h4><i class="fas fa-hospital"></i> Department Distribution</h4>
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Percentage</th>
+                                <th>Patient Count</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(data.distribution).map(([key, value]) => `
+                                <tr>
+                                    <td>${key}</td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <div style="width: 100px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                                                <div style="width: ${value}%; height: 100%; background: linear-gradient(to right, #00d4ff, #00f5a0); border-radius: 4px;"></div>
+                                            </div>
+                                            <span>${value}%</span>
+                                        </div>
+                                    </td>
+                                    <td>${Math.round(data.totalPatients * value / 100)}</td>
+                                    <td><span style="color: #00f5a0;">Active</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // System Report Preview
+        function generateSystemReportPreview() {
+            return `
+                <div class="preview-section">
+                    <h4><i class="fas fa-server"></i> System Health</h4>
+                    <div class="preview-stats-grid">
+                        <div class="preview-stat-card"><div class="value" style="color: #00f5a0;">99.9%</div><div class="label">Uptime</div></div>
+                        <div class="preview-stat-card"><div class="value">45ms</div><div class="label">Avg Response</div></div>
+                        <div class="preview-stat-card"><div class="value">2.1GB</div><div class="label">Memory Used</div></div>
+                        <div class="preview-stat-card"><div class="value">35%</div><div class="label">CPU Usage</div></div>
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <h4><i class="fas fa-shield-alt"></i> Security Audit</h4>
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Check</th>
+                                <th>Status</th>
+                                <th>Last Checked</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>SSL Certificate</td><td><span style="color: #00f5a0;">✓ Valid</span></td><td>Today</td><td>Expires in 245 days</td></tr>
+                            <tr><td>Firewall</td><td><span style="color: #00f5a0;">✓ Active</span></td><td>Today</td><td>All rules applied</td></tr>
+                            <tr><td>Database Backup</td><td><span style="color: #00f5a0;">✓ Complete</span></td><td>6 hours ago</td><td>Next: 12:00 AM</td></tr>
+                            <tr><td>Security Scan</td><td><span style="color: #00f5a0;">✓ Passed</span></td><td>Yesterday</td><td>No threats found</td></tr>
+                            <tr><td>User Sessions</td><td><span style="color: #ffd60a;">⚠ Review</span></td><td>Today</td><td>6 active sessions</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="preview-section">
+                    <h4><i class="fas fa-history"></i> Recent System Events</h4>
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Event</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>10:30 AM</td><td>Database backup completed</td><td><span style="color: #00f5a0;">Success</span></td></tr>
+                            <tr><td>09:45 AM</td><td>New user registration</td><td><span style="color: #00d4ff;">Info</span></td></tr>
+                            <tr><td>09:00 AM</td><td>System health check passed</td><td><span style="color: #00f5a0;">Success</span></td></tr>
+                            <tr><td>08:30 AM</td><td>Cache cleared automatically</td><td><span style="color: #00d4ff;">Info</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Generic Report Preview
+        function generateGenericReportPreview(data, months) {
+            const maxValue = Math.max(...data.chartData);
+            return `
+                <div class="preview-section">
+                    <h4><i class="fas fa-chart-bar"></i> Trend Analysis</h4>
+                    <div class="preview-chart" style="margin-bottom: 2rem;">
+                        ${data.chartData.map((value, index) => `
+                            <div class="preview-bar" style="height: ${(value / maxValue) * 100}%;">
+                                <span class="preview-bar-value">${value}</span>
+                                <span class="preview-bar-label">${months[index]}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <h4><i class="fas fa-list"></i> Distribution</h4>
+                    <table class="preview-table">
+                        <thead>
+                            <tr><th>Category</th><th>Percentage</th></tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(data.distribution).map(([key, value]) => `
+                                <tr><td>${key}</td><td>${value}%</td></tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Close preview modal
+        function closePreviewModal() {
+            document.getElementById('previewModal').classList.remove('show');
+        }
+
+        // Download from preview
+        function downloadFromPreview() {
+            closePreviewModal();
+            if (currentReport) {
+                const report = reportsData.find(r => r.id === currentReport);
+                if (report) {
+                    openDownloadModal(currentReport, report.name);
+                }
+            }
+        }
+
+        // Open download modal
+        function openDownloadModal(reportId, reportName) {
+            currentReport = reportId;
+            document.getElementById('reportNameDisplay').textContent = reportName;
+            document.getElementById('downloadModal').classList.add('show');
+        }
+
+        // Close download modal
+        function closeDownloadModal() {
+            document.getElementById('downloadModal').classList.remove('show');
+            currentReport = null;
+        }
+
+        // Download report
+        function downloadReport(format) {
+            const report = reportsData.find(r => r.id === currentReport);
+            if (!report) return;
+            
+            closeDownloadModal();
+            showLoading();
+            
+            const department = document.getElementById('department').selectedOptions[0].text;
+            const dateRange = document.getElementById('dateRange').selectedOptions[0].text;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            // Generate report content
+            const reportData = generateReportData(currentReport);
+            
+            setTimeout(() => {
+                hideLoading();
+                
+                if (format === 'print') {
+                    printReport(report.name, reportData, department, startDate, endDate);
+                } else {
+                    downloadFile(report.name, format, reportData, department, startDate, endDate);
+                }
+                
+                showToast(`${report.name} downloaded successfully as ${format.toUpperCase()}!`, 'success');
+            }, 1000);
+        }
+
+        // Generate report data
+        function generateReportData(reportId) {
+            const data = departmentData[currentDepartment];
+            const multiplier = rangeMultipliers[currentRange] || 1;
+            
+            return {
+                totalPatients: Math.round(data.patients * multiplier),
+                totalAppointments: Math.round(data.appointments * multiplier),
+                totalDoctors: data.doctors,
+                revenue: Math.round(data.revenue * multiplier),
+                bedOccupancy: data.bedOccupancy,
+                successRate: data.successRate,
+                distribution: data.distribution,
+                chartData: data.chartData.map(v => Math.round(v * multiplier))
+            };
+        }
+
+        // Download file
+        function downloadFile(reportName, format, data, department, startDate, endDate) {
+            let content = '';
+            let mimeType = '';
+            let extension = '';
+            
+            switch (format) {
+                case 'csv':
+                    content = generateCSV(reportName, data, department, startDate, endDate);
+                    mimeType = 'text/csv';
+                    extension = 'csv';
+                    break;
+                case 'excel':
+                    content = generateCSV(reportName, data, department, startDate, endDate);
+                    mimeType = 'application/vnd.ms-excel';
+                    extension = 'xls';
+                    break;
+                case 'pdf':
+                    // Generate HTML-based PDF content
+                    content = generateHTMLReport(reportName, data, department, startDate, endDate);
+                    mimeType = 'text/html';
+                    extension = 'html';
+                    break;
+            }
+            
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${reportName.replace(/\s+/g, '_')}_${startDate}_to_${endDate}.${extension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Generate CSV content
+        function generateCSV(reportName, data, department, startDate, endDate) {
+            let csv = `Hospital Management System - ${reportName}\n`;
+            csv += `Generated: ${new Date().toLocaleString()}\n`;
+            csv += `Department: ${department}\n`;
+            csv += `Period: ${startDate} to ${endDate}\n\n`;
+            csv += `Metric,Value\n`;
+            csv += `Total Patients,${data.totalPatients}\n`;
+            csv += `Total Appointments,${data.totalAppointments}\n`;
+            csv += `Total Doctors,${data.totalDoctors}\n`;
+            csv += `Revenue,$${data.revenue.toLocaleString()}\n`;
+            csv += `Bed Occupancy,${data.bedOccupancy}%\n`;
+            csv += `Success Rate,${data.successRate}%\n\n`;
+            csv += `Distribution\n`;
+            for (const [key, value] of Object.entries(data.distribution)) {
+                csv += `${key},${value}%\n`;
+            }
+            csv += `\nMonthly Trend\n`;
+            csv += `Month,Value\n`;
+            const months = ['January', 'February', 'March', 'April', 'May', 'June'];
+            data.chartData.forEach((value, index) => {
+                csv += `${months[index]},${value}\n`;
+            });
+            return csv;
+        }
+
+        // Generate HTML report for PDF
+        function generateHTMLReport(reportName, data, department, startDate, endDate) {
+            return `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>${reportName}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; }
+        h1 { color: #0099cc; border-bottom: 2px solid #0099cc; padding-bottom: 10px; }
+        .info { color: #666; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #0099cc; color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .section { margin: 30px 0; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #888; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🏥 ${reportName}</h1>
+    <div class="info">
+        <p><strong>Department:</strong> ${department}</p>
+        <p><strong>Period:</strong> ${startDate} to ${endDate}</p>
+        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Key Metrics</h2>
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Total Patients</td><td>${data.totalPatients.toLocaleString()}</td></tr>
+            <tr><td>Total Appointments</td><td>${data.totalAppointments.toLocaleString()}</td></tr>
+            <tr><td>Active Doctors</td><td>${data.totalDoctors}</td></tr>
+            <tr><td>Revenue</td><td>$${data.revenue.toLocaleString()}</td></tr>
+            <tr><td>Bed Occupancy</td><td>${data.bedOccupancy}%</td></tr>
+            <tr><td>Success Rate</td><td>${data.successRate}%</td></tr>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Distribution</h2>
+        <table>
+            <tr><th>Category</th><th>Percentage</th></tr>
+            ${Object.entries(data.distribution).map(([k, v]) => `<tr><td>${k}</td><td>${v}%</td></tr>`).join('')}
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Monthly Trend</h2>
+        <table>
+            <tr><th>Month</th><th>Value</th></tr>
+            ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m, i) => `<tr><td>${m}</td><td>${data.chartData[i]}</td></tr>`).join('')}
+        </table>
+    </div>
+    
+    <div class="footer">
+        <p>Hospital Management System - Confidential Report</p>
+        <p>© 2026 Hospital Management System. All rights reserved.</p>
+    </div>
+</body>
+</html>`;
+        }
+
+        // Print report
+        function printReport(reportName, data, department, startDate, endDate) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(generateHTMLReport(reportName, data, department, startDate, endDate));
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Export all reports
+        function exportAllReports() {
+            showLoading();
+            setTimeout(() => {
+                const department = document.getElementById('department').selectedOptions[0].text;
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                reportsData.forEach((report, index) => {
+                    setTimeout(() => {
+                        currentReport = report.id;
+                        const data = generateReportData(report.id);
+                        downloadFile(report.name, 'csv', data, department, startDate, endDate);
+                    }, index * 500);
+                });
+                
+                hideLoading();
+                showToast('All reports downloaded successfully!', 'success');
+            }, 500);
+        }
+
+        // Loading functions
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        // Toast notification
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

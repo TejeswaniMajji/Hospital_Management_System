@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Management - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --success: #00f5a0;
+            --danger: #ff006e;
+            --warning: #ffd60a;
+            --dark: #0f1419;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 15%;
+            right: 5%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(0, 245, 160, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+            filter: blur(40px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 5%;
+            left: 10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob-reverse 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+            filter: blur(40px);
+        }
+
+        @keyframes float-blob {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            33% { transform: translateY(-50px) translateX(30px); }
+            66% { transform: translateY(30px) translateX(-30px); }
+        }
+
+        @keyframes float-blob-reverse {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            33% { transform: translateY(50px) translateX(-30px); }
+            66% { transform: translateY(-30px) translateX(30px); }
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.2rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .btn:hover {
+            background: var(--gradient-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        .btn:active::before {
+            animation: ripple 0.6s ease-out;
+        }
+        @keyframes ripple {
+            to {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
+            }
+        }
+        .btn.success { border-color: var(--success); color: var(--success); }
+        .btn.success:hover { background: var(--success); color: #000; box-shadow: 0 5px 20px rgba(0, 245, 160, 0.3); }
+        .btn.danger { border-color: var(--danger); color: var(--danger); }
+        .btn.danger:hover { background: var(--danger); color: white; box-shadow: 0 5px 20px rgba(255, 0, 110, 0.3); }
+        .btn.small { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+
+        .table-section {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(0, 212, 255, 0.1);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            color: #ccc;
+        }
+
+        tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(0, 212, 255, 0.08);
+            transform: translateX(5px);
+            border-left: 4px solid var(--primary);
+        }
+
+        tbody tr td:first-child {
+            padding-left: 1.2rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .actions .btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--primary);
+            opacity: 0.5;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.98) 0%, rgba(26, 31, 46, 0.98) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+            transform: scale(1.2);
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: #ccc;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .modal-footer button,
+        .modal-footer a {
+            flex: 1;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: var(--gradient-blue);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-footer button::before,
+        .modal-footer a::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .modal-footer button:hover,
+        .modal-footer a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .modal-footer button:active::before,
+        .modal-footer a:active::before {
+            animation: ripple 0.6s ease-out;
+        }
+
+        .btn-cancel-modal {
+            background: transparent !important;
+            color: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
+
+        .btn-cancel-modal:hover {
+            background: rgba(0, 212, 255, 0.1) !important;
+        }
+
+        .btn-delete-modal {
+            background: var(--danger) !important;
+            border-color: var(--danger) !important;
+        }
+
+        .btn-delete-modal:hover {
+            box-shadow: 0 5px 20px rgba(255, 0, 110, 0.3) !important;
+        }
+
+        .edit-form { display: none; }
+        .modal.edit-mode .view-section { display: none; }
+        .modal.edit-mode .edit-form { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-stethoscope"></i> Doctor Management</h1>
+            <div class="header-actions">
+                <a href="/hospital/doctor/add" class="btn success">
+                    <i class="fas fa-plus"></i> Add Doctor
+                </a>
+                <a href="/hospital/" class="btn">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+
+        <!-- Doctors Table -->
+        <div class="table-section" th:if="${doctors != null and doctors.size() > 0}">
+            <table>
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-id-badge"></i> Doctor ID</th>
+                        <th><i class="fas fa-user"></i> Name</th>
+                        <th><i class="fas fa-graduation-cap"></i> Specialization</th>
+                        <th><i class="fas fa-phone"></i> Phone</th>
+                        <th><i class="fas fa-envelope"></i> Email</th>
+                        <th><i class="fas fa-cog"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doctor : ${doctors}">
+                        <td th:text="${doctor.doctorId}"></td>
+                        <td th:text="${doctor.firstName} + ' ' + ${doctor.lastName}"></td>
+                        <td th:text="${doctor.specialization}"></td>
+                        <td th:text="${doctor.phoneNumber}"></td>
+                        <td th:text="${doctor.email}"></td>
+                        <td>
+                            <div class="actions">
+                                <button type="button" class="btn btn-small" onclick="openViewModal(this)" th:data-id="${doctor.doctorId}" th:data-firstname="${doctor.firstName}" th:data-lastname="${doctor.lastName}" th:data-specialization="${doctor.specialization}" th:data-phone="${doctor.phoneNumber}" th:data-email="${doctor.email}" th:data-license="${doctor.licenseNumber}" th:data-status="${doctor.status}" th:data-department="${doctor.department}" th:data-experience="${doctor.yearsOfExperience}" th:data-address="${doctor.address}" th:data-city="${doctor.city}" th:data-state="${doctor.state}" th:data-zipcode="${doctor.zipCode}">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button type="button" class="btn btn-small" onclick="openEditModal(this)" th:data-id="${doctor.doctorId}" th:data-firstname="${doctor.firstName}" th:data-lastname="${doctor.lastName}" th:data-specialization="${doctor.specialization}" th:data-phone="${doctor.phoneNumber}" th:data-email="${doctor.email}" th:data-license="${doctor.licenseNumber}" th:data-experience="${doctor.yearsOfExperience}" th:data-department="${doctor.department}" th:data-address="${doctor.address}" th:data-city="${doctor.city}" th:data-state="${doctor.state}" th:data-zipcode="${doctor.zipCode}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <a th:href="@{/doctor/delete/{id}(id=${doctor.doctorId})}" class="btn btn-small danger" onclick="return confirm('Are you sure?')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" th:if="${doctors == null or doctors.size() == 0}">
+            <i class="fas fa-user-md"></i>
+            <h2>No Doctors Found</h2>
+            <p>No doctors have been added yet. Add your first doctor to get started.</p>
+            <a href="/hospital/doctor/add" class="btn success" style="margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Add Doctor
+            </a>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-stethoscope"></i> Doctor Details</h2>
+                <button class="modal-close" onclick="closeModal('viewModal')">×</button>
+            </div>
+            <div class="view-section" id="viewContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="switchToEdit()">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button type="button" class="btn-cancel-modal" onclick="closeModal('viewModal')">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Edit Doctor</h2>
+                <button class="modal-close" onclick="closeModal('editModal')">×</button>
+            </div>
+            <form id="editForm" action="/hospital/doctor/update" method="POST">
+                <input type="hidden" name="_csrf" id="csrfToken">
+                <input type="hidden" name="doctorId" id="doctorId">
+                
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="specialization">Specialization *</label>
+                    <select id="specialization" name="specialization" required>
+                        <option value="">Select Specialization</option>
+                        <option value="Cardiology">Cardiology</option>
+                        <option value="Neurology">Neurology</option>
+                        <option value="Orthopedics">Orthopedics</option>
+                        <option value="Pediatrics">Pediatrics</option>
+                        <option value="General Practice">General Practice</option>
+                        <option value="Surgery">Surgery</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneNumber">Phone *</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="licenseNumber">License Number *</label>
+                    <input type="text" id="licenseNumber" name="licenseNumber" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="yearsOfExperience">Years of Experience</label>
+                    <input type="text" id="yearsOfExperience" name="yearsOfExperience">
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <input type="text" id="department" name="department">
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" name="address">
+                </div>
+
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city">
+                </div>
+
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <input type="text" id="state" name="state">
+                </div>
+
+                <div class="form-group">
+                    <label for="zipCode">Zip Code</label>
+                    <input type="text" id="zipCode" name="zipCode">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" style="flex: 2;">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn-cancel-modal" onclick="closeModal('editModal')" style="flex: 1;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openViewModal(btn) {
+            const id = btn.getAttribute('data-id');
+            const firstName = btn.getAttribute('data-firstname');
+            const lastName = btn.getAttribute('data-lastname');
+            const specialization = btn.getAttribute('data-specialization');
+            const phone = btn.getAttribute('data-phone');
+            const email = btn.getAttribute('data-email');
+            const license = btn.getAttribute('data-license');
+            const status = btn.getAttribute('data-status');
+            const department = btn.getAttribute('data-department');
+            const experience = btn.getAttribute('data-experience');
+            const address = btn.getAttribute('data-address');
+            const city = btn.getAttribute('data-city');
+            const state = btn.getAttribute('data-state');
+            const zipcode = btn.getAttribute('data-zipcode');
+
+            let html = `
+                <div class="detail-row">
+                    <div class="detail-label">Doctor ID:</div>
+                    <div class="detail-value">${id}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Name:</div>
+                    <div class="detail-value">${firstName} ${lastName}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Specialization:</div>
+                    <div class="detail-value">${specialization}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Phone:</div>
+                    <div class="detail-value">${phone}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Email:</div>
+                    <div class="detail-value">${email}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">License:</div>
+                    <div class="detail-value">${license}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value">${status || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Department:</div>
+                    <div class="detail-value">${department || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Experience:</div>
+                    <div class="detail-value">${experience || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Address:</div>
+                    <div class="detail-value">${address || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">City:</div>
+                    <div class="detail-value">${city || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">State:</div>
+                    <div class="detail-value">${state || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Zip Code:</div>
+                    <div class="detail-value">${zipcode || 'N/A'}</div>
+                </div>
+            `;
+            document.getElementById('viewContent').innerHTML = html;
+            document.getElementById('viewContent').dataset.doctorId = id;
+            document.getElementById('viewContent').dataset.firstName = firstName;
+            document.getElementById('viewContent').dataset.lastName = lastName;
+            document.getElementById('viewContent').dataset.specialization = specialization;
+            document.getElementById('viewContent').dataset.phone = phone;
+            document.getElementById('viewContent').dataset.email = email;
+            document.getElementById('viewContent').dataset.license = license;
+            document.getElementById('viewContent').dataset.experience = experience;
+            document.getElementById('viewContent').dataset.department = department;
+            document.getElementById('viewContent').dataset.address = address;
+            document.getElementById('viewContent').dataset.city = city;
+            document.getElementById('viewContent').dataset.state = state;
+            document.getElementById('viewContent').dataset.zipcode = zipcode;
+            
+            document.getElementById('viewModal').classList.add('show');
+        }
+
+        function openEditModal(btn) {
+            const id = btn.getAttribute('data-id');
+            const firstName = btn.getAttribute('data-firstname');
+            const lastName = btn.getAttribute('data-lastname');
+            const specialization = btn.getAttribute('data-specialization');
+            const phone = btn.getAttribute('data-phone');
+            const email = btn.getAttribute('data-email');
+            const license = btn.getAttribute('data-license');
+            const experience = btn.getAttribute('data-experience');
+            const department = btn.getAttribute('data-department');
+            const address = btn.getAttribute('data-address');
+            const city = btn.getAttribute('data-city');
+            const state = btn.getAttribute('data-state');
+            const zipcode = btn.getAttribute('data-zipcode');
+
+            document.getElementById('doctorId').value = id;
+            document.getElementById('firstName').value = firstName;
+            document.getElementById('lastName').value = lastName;
+            document.getElementById('specialization').value = specialization;
+            document.getElementById('phoneNumber').value = phone;
+            document.getElementById('email').value = email;
+            document.getElementById('licenseNumber').value = license;
+            document.getElementById('yearsOfExperience').value = experience;
+            document.getElementById('department').value = department;
+            document.getElementById('address').value = address;
+            document.getElementById('city').value = city;
+            document.getElementById('state').value = state;
+            document.getElementById('zipCode').value = zipcode;
+
+            // Get CSRF token from meta tag or form
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || 
+                             document.querySelector('input[name="_csrf"]')?.value || '';
+            document.getElementById('csrfToken').value = csrfToken;
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function switchToEdit() {
+            closeModal('viewModal');
+            const viewContent = document.getElementById('viewContent');
+            const btn = document.createElement('button');
+            btn.setAttribute('data-id', viewContent.dataset.doctorId);
+            btn.setAttribute('data-firstname', viewContent.dataset.firstName);
+            btn.setAttribute('data-lastname', viewContent.dataset.lastName);
+            btn.setAttribute('data-specialization', viewContent.dataset.specialization);
+            btn.setAttribute('data-phone', viewContent.dataset.phone);
+            btn.setAttribute('data-email', viewContent.dataset.email);
+            btn.setAttribute('data-license', viewContent.dataset.license);
+            btn.setAttribute('data-experience', viewContent.dataset.experience);
+            btn.setAttribute('data-department', viewContent.dataset.department);
+            btn.setAttribute('data-address', viewContent.dataset.address);
+            btn.setAttribute('data-city', viewContent.dataset.city);
+            btn.setAttribute('data-state', viewContent.dataset.state);
+            btn.setAttribute('data-zipcode', viewContent.dataset.zipcode);
+            openEditModal(btn);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const viewModal = document.getElementById('viewModal');
+            const editModal = document.getElementById('editModal');
+            if (event.target === viewModal) {
+                closeModal('viewModal');
+            }
+            if (event.target === editModal) {
+                closeModal('editModal');
+            }
+        }
+    </script>
+</body>
+</html>

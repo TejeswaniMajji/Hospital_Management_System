@@ -1,0 +1,557 @@
+/* Hospital Management System - Global Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --light-gray: #ecf0f1;
+    --dark-gray: #34495e;
+    --text-color: #2c3e50;
+    --border-color: #bdc3c7;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header/Navigation */
+.header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: white;
+}
+
+.navbar {
+    flex: 1;
+    margin-left: 2rem;
+}
+
+.nav-list {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background-color: var(--secondary-color);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+    width: 100%;
+}
+
+/* Section Styles */
+.content-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--light-gray);
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+}
+
+/* Dashboard Stats */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+}
+
+.stat-content h3 {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: var(--dark-gray);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #2c3e50;
+}
+
+.btn-link {
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.25rem;
+    font-size: 0.9rem;
+    text-decoration: none;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.btn-view {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-view:hover {
+    background-color: #2980b9;
+}
+
+.btn-edit {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.btn-edit:hover {
+    background-color: #e67e22;
+}
+
+.btn-delete {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #c0392b;
+}
+
+/* Forms */
+.form-horizontal {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+.form-inline {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.form-inline .form-control {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Tables */
+.table-container {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+.data-table thead {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.data-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.data-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--light-gray);
+}
+
+.data-table .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Status and Priority Badges */
+.status-badge,
+.priority-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.status-Active {
+    background-color: rgba(39, 174, 96, 0.2);
+    color: var(--success-color);
+}
+
+.status-Inactive {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: var(--danger-color);
+}
+
+.status-Scheduled {
+    background-color: rgba(52, 152, 219, 0.2);
+    color: var(--secondary-color);
+}
+
+.status-Completed {
+    background-color: rgba(39, 174, 96, 0.2);
+    color: var(--success-color);
+}
+
+.status-Cancelled {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: var(--danger-color);
+}
+
+.status-Rescheduled {
+    background-color: rgba(243, 156, 18, 0.2);
+    color: var(--warning-color);
+}
+
+.priority-Low {
+    background-color: rgba(39, 174, 96, 0.2);
+    color: var(--success-color);
+}
+
+.priority-Medium {
+    background-color: rgba(243, 156, 18, 0.2);
+    color: var(--warning-color);
+}
+
+.priority-High {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: var(--danger-color);
+}
+
+.priority-Urgent {
+    background-color: rgba(192, 57, 43, 0.2);
+    color: #c0392b;
+}
+
+/* View Details */
+.view-details {
+    background-color: var(--light-gray);
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.detail-row {
+    display: flex;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--primary-color);
+    min-width: 200px;
+}
+
+.detail-value {
+    color: var(--text-color);
+}
+
+/* Search Form */
+.search-form {
+    background-color: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.search-form h3 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+/* Quick Actions */
+.quick-actions {
+    background-color: var(--light-gray);
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+.quick-actions h3 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Welcome Section */
+.welcome-section {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.welcome-section h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-section p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* No Data Message */
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: var(--dark-gray);
+    font-size: 1.1rem;
+}
+
+.no-data a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.no-data a:hover {
+    text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    padding: 1.5rem;
+    margin-top: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .navbar {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .nav-list {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .form-inline {
+        flex-direction: column;
+    }
+
+    .form-inline .form-control,
+    .form-inline .btn {
+        width: 100%;
+    }
+
+    .data-table {
+        font-size: 0.9rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.5rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .action-buttons .btn-link {
+        width: 100%;
+        text-align: center;
+    }
+
+    .detail-row {
+        flex-direction: column;
+    }
+
+    .detail-label {
+        margin-bottom: 0.5rem;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0 1rem;
+    }
+
+    .content-section {
+        padding: 1rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+    }
+}

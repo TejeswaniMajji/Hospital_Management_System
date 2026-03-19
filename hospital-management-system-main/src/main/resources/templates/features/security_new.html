@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Access Control - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%); color: #e0e0e0; font-family: system-ui; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .header { margin-bottom: 2rem; padding: 1.5rem; background: rgba(26, 31, 46, 0.5); border: 1px solid rgba(255, 0, 110, 0.2); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 2rem; color: #ff006e; }
+        .back-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid #00d4ff; color: #00d4ff; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+        .back-btn:hover { background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: #0f1419; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .tab { padding: 0.8rem 1.5rem; background: rgba(26, 31, 46, 0.5); border: 2px solid rgba(0, 212, 255, 0.2); border-radius: 8px; color: #aaa; cursor: pointer; transition: all 0.3s; font-weight: 600; }
+        .tab:hover { border-color: #00d4ff; color: #00d4ff; }
+        .tab.active { background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: #0f1419; border-color: #00d4ff; }
+        .tab i { margin-right: 0.5rem; }
+        
+        /* Tab Content */
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { padding: 1.5rem; background: rgba(0, 212, 255, 0.1); border: 2px solid rgba(0, 212, 255, 0.3); border-radius: 12px; text-align: center; }
+        .stat-card.danger { background: rgba(255, 0, 110, 0.1); border-color: rgba(255, 0, 110, 0.3); }
+        .stat-card.warning { background: rgba(255, 214, 10, 0.1); border-color: rgba(255, 214, 10, 0.3); }
+        .stat-card.success { background: rgba(0, 245, 160, 0.1); border-color: rgba(0, 245, 160, 0.3); }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #00d4ff; }
+        .stat-card.danger .stat-number { color: #ff006e; }
+        .stat-card.warning .stat-number { color: #ffd60a; }
+        .stat-card.success .stat-number { color: #00f5a0; }
+        .stat-label { font-size: 0.9rem; color: #a0a0a0; }
+        
+        /* Cards Grid */
+        .security-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .security-card { padding: 1.5rem; background: rgba(26, 31, 46, 0.8); border: 2px solid rgba(0, 212, 255, 0.2); border-radius: 15px; transition: all 0.3s; }
+        .security-card:hover { transform: translateY(-5px); border-color: #00d4ff; box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2); }
+        .card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .card-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .card-icon.blue { background: rgba(0, 212, 255, 0.2); color: #00d4ff; }
+        .card-icon.green { background: rgba(0, 245, 160, 0.2); color: #00f5a0; }
+        .card-icon.red { background: rgba(255, 0, 110, 0.2); color: #ff006e; }
+        .card-icon.yellow { background: rgba(255, 214, 10, 0.2); color: #ffd60a; }
+        .card-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+        .card-subtitle { font-size: 0.85rem; color: #aaa; }
+        .card-body { margin: 1rem 0; }
+        .card-body p { font-size: 0.9rem; color: #888; margin-bottom: 0.5rem; }
+        .status-indicator { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .status-indicator.active { background: rgba(0, 245, 160, 0.2); color: #00f5a0; }
+        .status-indicator.inactive { background: rgba(255, 0, 110, 0.2); color: #ff006e; }
+        .status-indicator.warning { background: rgba(255, 214, 10, 0.2); color: #ffd60a; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+        
+        /* Buttons */
+        .btn { padding: 0.7rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: #0f1419; }
+        .btn-success { background: linear-gradient(135deg, #00f5a0, #00c980); color: #0f1419; }
+        .btn-danger { background: linear-gradient(135deg, #ff006e, #cc0052); color: #fff; }
+        .btn-warning { background: linear-gradient(135deg, #ffd60a, #ccab00); color: #0f1419; }
+        .btn-secondary { background: transparent; border: 2px solid #00d4ff; color: #00d4ff; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3); }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+        
+        /* Table */
+        .table-container { background: rgba(26, 31, 46, 0.8); border: 2px solid rgba(0, 212, 255, 0.2); border-radius: 15px; padding: 1.5rem; overflow-x: auto; }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
+        .table-title { font-size: 1.2rem; color: #00d4ff; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: rgba(0, 212, 255, 0.1); }
+        th { padding: 1rem; text-align: left; color: #00d4ff; font-weight: 600; border-bottom: 2px solid rgba(0, 212, 255, 0.3); }
+        td { padding: 0.8rem 1rem; border-bottom: 1px solid rgba(0, 212, 255, 0.1); color: #ccc; }
+        tr:hover { background: rgba(0, 212, 255, 0.05); }
+        
+        /* Activity Log */
+        .activity-list { max-height: 500px; overflow-y: auto; }
+        .activity-item { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem; border-left: 3px solid #00d4ff; background: rgba(0, 212, 255, 0.05); border-radius: 0 8px 8px 0; margin-bottom: 0.5rem; transition: all 0.3s; }
+        .activity-item:hover { background: rgba(0, 212, 255, 0.1); }
+        .activity-item.warning { border-left-color: #ffd60a; }
+        .activity-item.danger { border-left-color: #ff006e; }
+        .activity-item.success { border-left-color: #00f5a0; }
+        .activity-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .activity-icon.blue { background: rgba(0, 212, 255, 0.2); color: #00d4ff; }
+        .activity-icon.green { background: rgba(0, 245, 160, 0.2); color: #00f5a0; }
+        .activity-icon.red { background: rgba(255, 0, 110, 0.2); color: #ff006e; }
+        .activity-icon.yellow { background: rgba(255, 214, 10, 0.2); color: #ffd60a; }
+        .activity-content { flex: 1; }
+        .activity-title { font-weight: 600; color: #fff; margin-bottom: 0.3rem; }
+        .activity-details { font-size: 0.85rem; color: #aaa; }
+        .activity-time { font-size: 0.75rem; color: #666; white-space: nowrap; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: linear-gradient(135deg, rgba(15, 20, 25, 0.98), rgba(26, 31, 46, 0.98)); border: 2px solid rgba(0, 212, 255, 0.3); border-radius: 15px; padding: 2rem; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(0, 212, 255, 0.2); }
+        .modal-header h2 { color: #00d4ff; font-size: 1.5rem; }
+        .modal-close { background: none; border: none; color: #00d4ff; font-size: 2rem; cursor: pointer; transition: transform 0.3s; }
+        .modal-close:hover { transform: rotate(90deg); }
+        .modal-footer { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end; }
+        
+        /* Form */
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #00d4ff; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.8rem; background: rgba(0, 212, 255, 0.05); border: 2px solid rgba(0, 212, 255, 0.2); color: #e0e0e0; border-radius: 8px; font-size: 1rem; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #00d4ff; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .toggle-switch { position: relative; width: 60px; height: 30px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 0, 110, 0.3); border-radius: 30px; transition: 0.3s; }
+        .toggle-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        .toggle-switch input:checked + .toggle-slider { background: rgba(0, 245, 160, 0.5); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(30px); }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(0, 212, 255, 0.05); border-radius: 8px; margin-bottom: 0.5rem; }
+        .toggle-label { font-weight: 600; color: #ccc; }
+        .toggle-desc { font-size: 0.8rem; color: #888; }
+        
+        /* Search */
+        .search-box { display: flex; gap: 0.5rem; }
+        .search-box input { padding: 0.6rem 1rem; background: rgba(0, 212, 255, 0.05); border: 2px solid rgba(0, 212, 255, 0.2); color: #e0e0e0; border-radius: 8px; width: 250px; }
+        .search-box input:focus { outline: none; border-color: #00d4ff; }
+        
+        /* Filter */
+        .filter-row { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-select { padding: 0.5rem 1rem; background: rgba(0, 212, 255, 0.05); border: 2px solid rgba(0, 212, 255, 0.2); color: #e0e0e0; border-radius: 8px; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading { text-align: center; padding: 2rem; color: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> Security & Access Control</h1>
+            <a href="/hospital/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('overview')"><i class="fas fa-tachometer-alt"></i> Overview</div>
+            <div class="tab" onclick="showTab('sessions')"><i class="fas fa-desktop"></i> Sessions</div>
+            <div class="tab" onclick="showTab('roles')"><i class="fas fa-users-cog"></i> Roles</div>
+            <div class="tab" onclick="showTab('blocks')"><i class="fas fa-ban"></i> Blocked IPs</div>
+            <div class="tab" onclick="showTab('activity')"><i class="fas fa-history"></i> Activity Log</div>
+            <div class="tab" onclick="showTab('settings')"><i class="fas fa-cog"></i> Settings</div>
+        </div>
+
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <div class="stats-grid">
+                <div class="stat-card success">
+                    <div class="stat-number" id="activeSessions">24</div>
+                    <div class="stat-label">Active Sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUsers">156</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number" id="failedLogins">12</div>
+                    <div class="stat-label">Failed Logins (24h)</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-number" id="blockedIPs">8</div>
+                    <div class="stat-label">Blocked IPs</div>
+                </div>
+            </div>
+
+            <div class="security-grid">
+                <div class="security-card">
+                    <div class="card-header">
+                        <div class="card-icon blue"><i class="fas fa-lock"></i></div>
+                        <div>
+                            <div class="card-title">Password Policy</div>
+                            <div class="card-subtitle">Strong password requirements</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <span class="status-indicator active"><span class="status-dot"></span> Enabled</span>
+                        <p>Min 8 chars, uppercase, number, symbol</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('password')"><i class="fas fa-cog"></i> Configure</button>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <div class="card-icon green"><i class="fas fa-user-shield"></i></div>
+                        <div>
+                            <div class="card-title">Two-Factor Auth</div>
+                            <div class="card-subtitle">Extra layer of security</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <span class="status-indicator active"><span class="status-dot"></span> Enabled</span>
+                        <p>TOTP / SMS / Email verification</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('2fa')"><i class="fas fa-cog"></i> Configure</button>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <div class="card-icon yellow"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div>
+                            <div class="card-title">Account Lockout</div>
+                            <div class="card-subtitle">Brute force protection</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <span class="status-indicator active"><span class="status-dot"></span> 5 attempts</span>
+                        <p>Auto-lock after 5 failed attempts</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('lockout')"><i class="fas fa-cog"></i> Configure</button>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <div class="card-icon blue"><i class="fas fa-clock"></i></div>
+                        <div>
+                            <div class="card-title">Session Timeout</div>
+                            <div class="card-subtitle">Auto logout inactive users</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <span class="status-indicator active"><span class="status-dot"></span> 30 minutes</span>
+                        <p>Idle sessions expire after 30 min</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('session')"><i class="fas fa-cog"></i> Configure</button>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <div class="card-icon green"><i class="fas fa-file-alt"></i></div>
+                        <div>
+                            <div class="card-title">Audit Logging</div>
+                            <div class="card-subtitle">Track all system activities</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <span class="status-indicator active"><span class="status-dot"></span> Enabled</span>
+                        <p>Logs retained for 90 days</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('audit')"><i class="fas fa-cog"></i> Configure</button>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <div class="card-icon red"><i class="fas fa-shield-virus"></i></div>
+                        <div>
+                            <div class="card-title">Threat Detection</div>
+                            <div class="card-subtitle">AI-powered security</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <span class="status-indicator active"><span class="status-dot"></span> Active</span>
+                        <p>Real-time threat monitoring</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('threat')"><i class="fas fa-cog"></i> Configure</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sessions Tab -->
+        <div class="tab-content" id="sessions">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 class="table-title"><i class="fas fa-desktop"></i> Active Sessions</h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-danger btn-sm" onclick="terminateAllSessions()"><i class="fas fa-power-off"></i> Terminate All</button>
+                        <button class="btn btn-secondary btn-sm" onclick="refreshSessions()"><i class="fas fa-sync"></i> Refresh</button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>IP Address</th>
+                            <th>Device</th>
+                            <th>Location</th>
+                            <th>Login Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionsTable">
+                        <tr>
+                            <td><strong>admin@hospital.com</strong></td>
+                            <td><span class="status-indicator active">Admin</span></td>
+                            <td>192.168.1.100</td>
+                            <td><i class="fas fa-laptop"></i> Chrome / Windows</td>
+                            <td>New York, USA</td>
+                            <td>10 Mar 2026, 09:30 AM</td>
+                            <td><span class="status-indicator active"><span class="status-dot"></span> Active</span></td>
+                            <td><button class="btn btn-danger btn-sm" onclick="terminateSession(1)"><i class="fas fa-times"></i></button></td>
+                        </tr>
+                        <tr>
+                            <td><strong>dr.smith@hospital.com</strong></td>
+                            <td><span class="status-indicator" style="background: rgba(102, 126, 234, 0.2); color: #667eea;">Doctor</span></td>
+                            <td>192.168.1.105</td>
+                            <td><i class="fas fa-mobile-alt"></i> Safari / iOS</td>
+                            <td>Los Angeles, USA</td>
+                            <td>10 Mar 2026, 08:45 AM</td>
+                            <td><span class="status-indicator active"><span class="status-dot"></span> Active</span></td>
+                            <td><button class="btn btn-danger btn-sm" onclick="terminateSession(2)"><i class="fas fa-times"></i></button></td>
+                        </tr>
+                        <tr>
+                            <td><strong>nurse.jane@hospital.com</strong></td>
+                            <td><span class="status-indicator" style="background: rgba(0, 245, 160, 0.2); color: #00f5a0;">Staff</span></td>
+                            <td>192.168.1.110</td>
+                            <td><i class="fas fa-desktop"></i> Firefox / Linux</td>
+                            <td>Chicago, USA</td>
+                            <td>10 Mar 2026, 10:15 AM</td>
+                            <td><span class="status-indicator warning"><span class="status-dot"></span> Idle</span></td>
+                            <td><button class="btn btn-danger btn-sm" onclick="terminateSession(3)"><i class="fas fa-times"></i></button></td>
+                        </tr>
+                        <tr>
+                            <td><strong>reception@hospital.com</strong></td>
+                            <td><span class="status-indicator" style="background: rgba(255, 214, 10, 0.2); color: #ffd60a;">Reception</span></td>
+                            <td>192.168.1.120</td>
+                            <td><i class="fas fa-laptop"></i> Edge / Windows</td>
+                            <td>New York, USA</td>
+                            <td>10 Mar 2026, 07:00 AM</td>
+                            <td><span class="status-indicator active"><span class="status-dot"></span> Active</span></td>
+                            <td><button class="btn btn-danger btn-sm" onclick="terminateSession(4)"><i class="fas fa-times"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Roles Tab -->
+        <div class="tab-content" id="roles">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 class="table-title"><i class="fas fa-users-cog"></i> User Roles & Permissions</h3>
+                    <button class="btn btn-success" onclick="openRoleModal()"><i class="fas fa-plus"></i> Add Role</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Role Name</th>
+                            <th>Description</th>
+                            <th>Users</th>
+                            <th>Permissions</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rolesTable">
+                        <tr>
+                            <td><strong>Administrator</strong></td>
+                            <td>Full system access</td>
+                            <td>3</td>
+                            <td><span class="status-indicator active">All Permissions</span></td>
+                            <td><span class="status-indicator active"><span class="status-dot"></span> Active</span></td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="editRole('admin')"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="viewPermissions('admin')"><i class="fas fa-key"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Doctor</strong></td>
+                            <td>Medical staff access</td>
+                            <td>25</td>
+                            <td><span class="status-indicator" style="background: rgba(102, 126, 234, 0.2); color: #667eea;">12 Permissions</span></td>
+                            <td><span class="status-indicator active"><span class="status-dot"></span> Active</span></td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="editRole('doctor')"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="viewPermissions('doctor')"><i class="fas fa-key"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nurse</strong></td>
+                            <td>Nursing staff access</td>
+                            <td>45</td>
+                            <td><span class="status-indicator" style="background: rgba(0, 245, 160, 0.2); color: #00f5a0;">8 Permissions</span></td>
+                            <td><span class="status-indicator active"><span class="status-dot"></span> Active</span></td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="editRole('nurse')"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="viewPermissions('nurse')"><i class="fas fa-key"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Receptionist</strong></td>
+                            <td>Front desk operations</td>
+                            <td>10</td>
+                            <td><span class="status-indicator warning">6 Permissions</span></td>
+                            <td><span class="status-indicator active"><span class="status-dot"></span> Active</span></td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="editRole('receptionist')"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="viewPermissions('receptionist')"><i class="fas fa-key"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Lab Technician</strong></td>
+                            <td>Laboratory access</td>
+                            <td>8</td>
+                            <td><span class="status-indicator" style="background: rgba(255, 214, 10, 0.2); color: #ffd60a;">5 Permissions</span></td>
+                            <td><span class="status-indicator active"><span class="status-dot"></span> Active</span></td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="editRole('labtech')"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="viewPermissions('labtech')"><i class="fas fa-key"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Blocked IPs Tab -->
+        <div class="tab-content" id="blocks">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 class="table-title"><i class="fas fa-ban"></i> Blocked IP Addresses</h3>
+                    <button class="btn btn-danger" onclick="openBlockModal()"><i class="fas fa-plus"></i> Block IP</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>IP Address</th>
+                            <th>Reason</th>
+                            <th>Blocked By</th>
+                            <th>Blocked Date</th>
+                            <th>Expires</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blocksTable">
+                        <tr>
+                            <td><strong>203.0.113.45</strong></td>
+                            <td>Multiple failed login attempts</td>
+                            <td>System (Auto)</td>
+                            <td>10 Mar 2026, 08:30 AM</td>
+                            <td>11 Mar 2026, 08:30 AM</td>
+                            <td><span class="status-indicator inactive"><span class="status-dot"></span> Blocked</span></td>
+                            <td><button class="btn btn-success btn-sm" onclick="unblockIP('203.0.113.45')"><i class="fas fa-unlock"></i> Unblock</button></td>
+                        </tr>
+                        <tr>
+                            <td><strong>198.51.100.23</strong></td>
+                            <td>Suspicious activity</td>
+                            <td>admin@hospital.com</td>
+                            <td>09 Mar 2026, 02:15 PM</td>
+                            <td>Permanent</td>
+                            <td><span class="status-indicator inactive"><span class="status-dot"></span> Blocked</span></td>
+                            <td><button class="btn btn-success btn-sm" onclick="unblockIP('198.51.100.23')"><i class="fas fa-unlock"></i> Unblock</button></td>
+                        </tr>
+                        <tr>
+                            <td><strong>192.0.2.100</strong></td>
+                            <td>Brute force attack</td>
+                            <td>System (Auto)</td>
+                            <td>08 Mar 2026, 11:00 PM</td>
+                            <td>Permanent</td>
+                            <td><span class="status-indicator inactive"><span class="status-dot"></span> Blocked</span></td>
+                            <td><button class="btn btn-success btn-sm" onclick="unblockIP('192.0.2.100')"><i class="fas fa-unlock"></i> Unblock</button></td>
+                        </tr>
+                        <tr>
+                            <td><strong>10.0.0.55</strong></td>
+                            <td>SQL injection attempt</td>
+                            <td>System (Auto)</td>
+                            <td>07 Mar 2026, 05:45 PM</td>
+                            <td>Permanent</td>
+                            <td><span class="status-indicator inactive"><span class="status-dot"></span> Blocked</span></td>
+                            <td><button class="btn btn-success btn-sm" onclick="unblockIP('10.0.0.55')"><i class="fas fa-unlock"></i> Unblock</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Activity Log Tab -->
+        <div class="tab-content" id="activity">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 class="table-title"><i class="fas fa-history"></i> Security Activity Log</h3>
+                    <div class="filter-row">
+                        <select class="filter-select" id="activityFilter" onchange="filterActivity()">
+                            <option value="all">All Activities</option>
+                            <option value="login">Login/Logout</option>
+                            <option value="failed">Failed Attempts</option>
+                            <option value="security">Security Changes</option>
+                            <option value="admin">Admin Actions</option>
+                        </select>
+                        <button class="btn btn-secondary btn-sm" onclick="exportLogs()"><i class="fas fa-download"></i> Export</button>
+                    </div>
+                </div>
+                <div class="activity-list" id="activityList">
+                    <div class="activity-item success">
+                        <div class="activity-icon green"><i class="fas fa-sign-in-alt"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">Successful Login</div>
+                            <div class="activity-details">admin@hospital.com logged in from IP 192.168.1.100 (Chrome/Windows)</div>
+                        </div>
+                        <div class="activity-time">2 min ago</div>
+                    </div>
+                    <div class="activity-item warning">
+                        <div class="activity-icon yellow"><i class="fas fa-exclamation-circle"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">Failed Login Attempt</div>
+                            <div class="activity-details">Invalid credentials for user unknown@test.com from IP 203.0.113.45</div>
+                        </div>
+                        <div class="activity-time">15 min ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon blue"><i class="fas fa-key"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">Password Changed</div>
+                            <div class="activity-details">dr.smith@hospital.com changed their password</div>
+                        </div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                    <div class="activity-item danger">
+                        <div class="activity-icon red"><i class="fas fa-ban"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">IP Blocked</div>
+                            <div class="activity-details">IP 203.0.113.45 blocked due to multiple failed login attempts</div>
+                        </div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                    <div class="activity-item success">
+                        <div class="activity-icon green"><i class="fas fa-user-shield"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">2FA Enabled</div>
+                            <div class="activity-details">nurse.jane@hospital.com enabled two-factor authentication</div>
+                        </div>
+                        <div class="activity-time">3 hours ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon blue"><i class="fas fa-users-cog"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">Role Modified</div>
+                            <div class="activity-details">Admin updated permissions for role "Lab Technician"</div>
+                        </div>
+                        <div class="activity-time">5 hours ago</div>
+                    </div>
+                    <div class="activity-item warning">
+                        <div class="activity-icon yellow"><i class="fas fa-clock"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">Session Expired</div>
+                            <div class="activity-details">Session for reception@hospital.com expired due to inactivity</div>
+                        </div>
+                        <div class="activity-time">6 hours ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon blue"><i class="fas fa-sign-out-alt"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">User Logout</div>
+                            <div class="activity-details">dr.johnson@hospital.com logged out successfully</div>
+                        </div>
+                        <div class="activity-time">8 hours ago</div>
+                    </div>
+                    <div class="activity-item danger">
+                        <div class="activity-icon red"><i class="fas fa-shield-virus"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">Threat Detected</div>
+                            <div class="activity-details">Potential SQL injection attempt blocked from IP 10.0.0.55</div>
+                        </div>
+                        <div class="activity-time">12 hours ago</div>
+                    </div>
+                    <div class="activity-item success">
+                        <div class="activity-icon green"><i class="fas fa-user-plus"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">New User Created</div>
+                            <div class="activity-details">Admin created new user account: labtech2@hospital.com</div>
+                        </div>
+                        <div class="activity-time">1 day ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div class="tab-content" id="settings">
+            <div class="security-grid">
+                <div class="table-container" style="grid-column: span 2;">
+                    <h3 class="table-title" style="margin-bottom: 1.5rem;"><i class="fas fa-cog"></i> Security Settings</h3>
+                    
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Password Policy Enforcement</div>
+                            <div class="toggle-desc">Require strong passwords for all users</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Two-Factor Authentication (2FA)</div>
+                            <div class="toggle-desc">Enable 2FA for all user accounts</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Account Lockout Policy</div>
+                            <div class="toggle-desc">Lock accounts after failed login attempts</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Session Timeout</div>
+                            <div class="toggle-desc">Auto-logout inactive sessions</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Audit Logging</div>
+                            <div class="toggle-desc">Log all security-related activities</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Auto IP Blocking</div>
+                            <div class="toggle-desc">Automatically block suspicious IPs</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Threat Detection AI</div>
+                            <div class="toggle-desc">Enable AI-powered threat detection</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Email Notifications</div>
+                            <div class="toggle-desc">Send alerts for security events</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: #00d4ff; margin-bottom: 1rem;">Security Parameters</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Max Login Attempts</label>
+                                <input type="number" value="5" min="1" max="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Lockout Duration (minutes)</label>
+                                <input type="number" value="30" min="5" max="1440">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Session Timeout (minutes)</label>
+                                <input type="number" value="30" min="5" max="480">
+                            </div>
+                            <div class="form-group">
+                                <label>Password Expiry (days)</label>
+                                <input type="number" value="90" min="30" max="365">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Min Password Length</label>
+                                <input type="number" value="8" min="6" max="32">
+                            </div>
+                            <div class="form-group">
+                                <label>Log Retention (days)</label>
+                                <input type="number" value="90" min="30" max="365">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                        <button class="btn btn-success" onclick="saveSettings()"><i class="fas fa-save"></i> Save Settings</button>
+                        <button class="btn btn-secondary" onclick="resetSettings()"><i class="fas fa-undo"></i> Reset to Defaults</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div class="modal" id="configModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="configModalTitle"><i class="fas fa-cog"></i> Configure</h2>
+                <button class="modal-close" onclick="closeConfigModal()">&times;</button>
+            </div>
+            <div id="configModalContent">
+                <!-- Dynamic content loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeConfigModal()"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn btn-success" onclick="saveConfig()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Modal -->
+    <div class="modal" id="roleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-users-cog"></i> Add New Role</h2>
+                <button class="modal-close" onclick="closeRoleModal()">&times;</button>
+            </div>
+            <form id="roleForm">
+                <div class="form-group">
+                    <label>Role Name</label>
+                    <input type="text" id="roleName" required placeholder="e.g., Pharmacist">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="roleDescription" placeholder="Brief description of the role">
+                </div>
+                <div class="form-group">
+                    <label>Permissions</label>
+                    <div style="max-height: 200px; overflow-y: auto; padding: 1rem; background: rgba(0,212,255,0.05); border-radius: 8px;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> View Patients
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> Edit Patients
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> View Appointments
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> Manage Appointments
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> View Medical Records
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> Edit Medical Records
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> View Reports
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> Generate Reports
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> Manage Billing
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox"> Admin Access
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeRoleModal()"><i class="fas fa-times"></i> Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Create Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Block IP Modal -->
+    <div class="modal" id="blockModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-ban"></i> Block IP Address</h2>
+                <button class="modal-close" onclick="closeBlockModal()">&times;</button>
+            </div>
+            <form id="blockForm">
+                <div class="form-group">
+                    <label>IP Address</label>
+                    <input type="text" id="blockIP" required placeholder="e.g., 192.168.1.100">
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <select id="blockReason">
+                        <option value="Suspicious activity">Suspicious activity</option>
+                        <option value="Multiple failed login attempts">Multiple failed login attempts</option>
+                        <option value="Brute force attack">Brute force attack</option>
+                        <option value="SQL injection attempt">SQL injection attempt</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Duration</label>
+                    <select id="blockDuration">
+                        <option value="1">1 Hour</option>
+                        <option value="24">24 Hours</option>
+                        <option value="168">7 Days</option>
+                        <option value="720">30 Days</option>
+                        <option value="0">Permanent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes (Optional)</label>
+                    <textarea id="blockNotes" rows="2" placeholder="Additional details..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeBlockModal()"><i class="fas fa-times"></i> Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-ban"></i> Block IP</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Configuration modal
+        function openConfigModal(type) {
+            const modal = document.getElementById('configModal');
+            const title = document.getElementById('configModalTitle');
+            const content = document.getElementById('configModalContent');
+            
+            const configs = {
+                password: {
+                    title: '<i class="fas fa-lock"></i> Password Policy',
+                    content: `
+                        <div class="form-group">
+                            <label>Minimum Password Length</label>
+                            <input type="number" value="8" min="6" max="32">
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Require Uppercase</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Require Lowercase</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Require Numbers</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Require Special Characters</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="form-group">
+                            <label>Password Expiry (days)</label>
+                            <input type="number" value="90" min="30" max="365">
+                        </div>
+                    `
+                },
+                '2fa': {
+                    title: '<i class="fas fa-user-shield"></i> Two-Factor Authentication',
+                    content: `
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Enable 2FA</div><div class="toggle-desc">Require 2FA for all users</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">TOTP (Authenticator App)</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">SMS Verification</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Email Verification</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                    `
+                },
+                lockout: {
+                    title: '<i class="fas fa-exclamation-triangle"></i> Account Lockout',
+                    content: `
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Enable Account Lockout</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="form-group">
+                            <label>Max Failed Attempts</label>
+                            <input type="number" value="5" min="1" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Lockout Duration (minutes)</label>
+                            <input type="number" value="30" min="5" max="1440">
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Notify Admin on Lockout</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                    `
+                },
+                session: {
+                    title: '<i class="fas fa-clock"></i> Session Management',
+                    content: `
+                        <div class="form-group">
+                            <label>Session Timeout (minutes)</label>
+                            <input type="number" value="30" min="5" max="480">
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Single Session Per User</div><div class="toggle-desc">Logout other sessions on new login</div></div>
+                            <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Remember Me Feature</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="form-group">
+                            <label>Remember Me Duration (days)</label>
+                            <input type="number" value="30" min="1" max="90">
+                        </div>
+                    `
+                },
+                audit: {
+                    title: '<i class="fas fa-file-alt"></i> Audit Logging',
+                    content: `
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Enable Audit Logging</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="form-group">
+                            <label>Log Retention (days)</label>
+                            <input type="number" value="90" min="30" max="365">
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Log User Actions</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Log System Events</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Log API Requests</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                    `
+                },
+                threat: {
+                    title: '<i class="fas fa-shield-virus"></i> Threat Detection',
+                    content: `
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Enable AI Threat Detection</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Auto-block Suspicious IPs</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">SQL Injection Detection</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">XSS Attack Detection</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div><div class="toggle-label">Real-time Alerts</div></div>
+                            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                        </div>
+                    `
+                }
+            };
+            
+            title.innerHTML = configs[type].title;
+            content.innerHTML = configs[type].content;
+            modal.classList.add('show');
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').classList.remove('show');
+        }
+
+        function saveConfig() {
+            alert('Configuration saved successfully!');
+            closeConfigModal();
+        }
+
+        // Role Modal
+        function openRoleModal() {
+            document.getElementById('roleModal').classList.add('show');
+        }
+
+        function closeRoleModal() {
+            document.getElementById('roleModal').classList.remove('show');
+        }
+
+        function editRole(role) {
+            alert('Edit role: ' + role);
+        }
+
+        function viewPermissions(role) {
+            alert('View permissions for role: ' + role);
+        }
+
+        // Block Modal
+        function openBlockModal() {
+            document.getElementById('blockModal').classList.add('show');
+        }
+
+        function closeBlockModal() {
+            document.getElementById('blockModal').classList.remove('show');
+        }
+
+        function unblockIP(ip) {
+            if (confirm('Are you sure you want to unblock IP: ' + ip + '?')) {
+                alert('IP ' + ip + ' has been unblocked.');
+            }
+        }
+
+        // Sessions
+        function terminateSession(id) {
+            if (confirm('Are you sure you want to terminate this session?')) {
+                alert('Session terminated.');
+            }
+        }
+
+        function terminateAllSessions() {
+            if (confirm('Are you sure you want to terminate ALL active sessions? This will log out all users.')) {
+                alert('All sessions terminated.');
+            }
+        }
+
+        function refreshSessions() {
+            alert('Sessions refreshed.');
+        }
+
+        // Activity
+        function filterActivity() {
+            const filter = document.getElementById('activityFilter').value;
+            alert('Filtering by: ' + filter);
+        }
+
+        function exportLogs() {
+            alert('Exporting activity logs...');
+        }
+
+        // Settings
+        function saveSettings() {
+            alert('Settings saved successfully!');
+        }
+
+        function resetSettings() {
+            if (confirm('Are you sure you want to reset all settings to defaults?')) {
+                alert('Settings reset to defaults.');
+            }
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+
+        // Form submissions
+        document.getElementById('roleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Role created successfully!');
+            closeRoleModal();
+        });
+
+        document.getElementById('blockForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const ip = document.getElementById('blockIP').value;
+            alert('IP ' + ip + ' has been blocked.');
+            closeBlockModal();
+        });
+    </script>
+</body>
+</html>

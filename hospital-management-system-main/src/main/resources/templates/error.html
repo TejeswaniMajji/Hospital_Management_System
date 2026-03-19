@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Page - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4ff;
+            --danger: #ff006e;
+            --dark: #0f1419;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .error-container {
+            text-align: center;
+            max-width: 600px;
+        }
+        .error-icon {
+            font-size: 5rem;
+            color: var(--danger);
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--danger) 0%, #ff3f8a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .error-code {
+            font-size: 3rem;
+            color: var(--danger);
+            opacity: 0.6;
+            margin-bottom: 1rem;
+        }
+        p {
+            font-size: 1.1rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+        .error-details {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 0, 110, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error-details pre {
+            color: #ccc;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: var(--gradient-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+
+        <h1>Oops! Something Went Wrong</h1>
+
+        <div class="error-code" th:if="${status}">
+            Error <span th:text="${status}"></span>
+        </div>
+
+        <p th:if="${message}" th:text="${message}"></p>
+        <p th:unless="${message}">An unexpected error occurred. Please try again later or contact support.</p>
+
+        <div class="error-details" th:if="${error}">
+            <pre th:text="${error}"></pre>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/hospital/" class="btn">
+                <i class="fas fa-home"></i> Go Home
+            </a>
+            <a href="javascript:history.back()" class="btn">
+                <i class="fas fa-arrow-left"></i> Go Back
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing & Payments - Hospital Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4ff;
+            --success: #00f5a0;
+            --warning: #ffd60a;
+            --danger: #ff006e;
+            --dark: #0f1419;
+            --card-bg: rgba(255, 255, 255, 0.05);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .navbar {
+            background: rgba(15, 20, 25, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.1);
+            padding: 1rem 2rem;
+            margin: -2rem -2rem 2rem -2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .back-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            background: var(--primary);
+            color: #0f1419;
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .stat-card.revenue i { color: var(--success); }
+        .stat-card.pending i { color: var(--warning); }
+        .stat-card.overdue i { color: var(--danger); }
+        .stat-card.paid i { color: var(--primary); }
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .stat-card p { color: #888; }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .card-header h2 {
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #0099cc 100%);
+            color: #0f1419;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #00d084 100%);
+            color: #0f1419;
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #ffc107 100%);
+            color: #0f1419;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #cc0058 100%);
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        th {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-badge.paid {
+            background: rgba(0, 245, 160, 0.2);
+            color: var(--success);
+        }
+        .status-badge.pending {
+            background: rgba(255, 214, 10, 0.2);
+            color: var(--warning);
+        }
+        .status-badge.overdue {
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--danger);
+        }
+        .status-badge.partial {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--primary);
+        }
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .action-btn {
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .action-btn.view { background: rgba(0, 212, 255, 0.2); color: var(--primary); }
+        .action-btn.pay { background: rgba(0, 245, 160, 0.2); color: var(--success); }
+        .action-btn.print { background: rgba(255, 255, 255, 0.1); color: #888; }
+        .payment-methods {
+            display: grid;
+            gap: 1rem;
+        }
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .payment-method:hover {
+            border-color: var(--primary);
+        }
+        .payment-method.selected {
+            border-color: var(--success);
+            background: rgba(0, 245, 160, 0.1);
+        }
+        .payment-method i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        .payment-method h4 { margin-bottom: 0.2rem; }
+        .payment-method p { font-size: 0.8rem; color: #888; }
+        
+        /* Payment Method Forms in Modal */
+        .payment-method-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .payment-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .payment-option:hover {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.1);
+        }
+        .payment-option.active {
+            border-color: var(--success);
+            background: rgba(0, 245, 160, 0.1);
+        }
+        .payment-option i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        .payment-option.active i {
+            color: var(--success);
+        }
+        .payment-option span {
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .payment-form-container {
+            min-height: 200px;
+            padding: 1rem 0;
+        }
+        .payment-form {
+            display: none !important;
+            animation: fadeIn 0.3s ease;
+        }
+        .payment-form.active {
+            display: block !important;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bank-details {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        .bank-details p {
+            margin: 0.5rem 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .bank-details p span:first-child {
+            color: #888;
+        }
+        .bank-details p span:last-child {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .paypal-btn {
+            background: #0070ba !important;
+            width: 100%;
+            padding: 1rem !important;
+            font-size: 1.1rem !important;
+        }
+        .paypal-btn i {
+            margin-right: 0.5rem;
+        }
+        .cash-receipt {
+            background: rgba(0, 245, 160, 0.1);
+            border: 2px dashed var(--success);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .cash-receipt i {
+            font-size: 3rem;
+            color: var(--success);
+            margin-bottom: 1rem;
+        }
+        .cash-receipt h3 {
+            color: var(--success);
+            margin-bottom: 0.5rem;
+        }
+        
+        .quick-stats {
+            margin-top: 1.5rem;
+        }
+        .quick-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .quick-stat:last-child { border-bottom: none; }
+        .quick-stat span:last-child { font-weight: 600; color: var(--primary); }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1f2e 0%, #16213e 100%);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .modal-header h2 { color: var(--primary); }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .close-btn:hover { color: var(--danger); }
+        .invoice-details {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .invoice-items { margin: 1rem 0; }
+        .invoice-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
+        .invoice-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 1rem;
+            border-top: 2px solid var(--primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #888;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-hospital"></i> HMS Billing
+        </div>
+        <a href="/hospital/" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </nav>
+
+    <div class="page-header">
+        <h1><i class="fas fa-file-invoice-dollar"></i> Billing & Payments</h1>
+        <p>Manage invoices, payments, and financial records</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card revenue">
+            <i class="fas fa-dollar-sign"></i>
+            <h3>$125,450</h3>
+            <p>Total Revenue (This Month)</p>
+        </div>
+        <div class="stat-card pending">
+            <i class="fas fa-clock"></i>
+            <h3>$18,320</h3>
+            <p>Pending Payments</p>
+        </div>
+        <div class="stat-card overdue">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>$4,580</h3>
+            <p>Overdue Amount</p>
+        </div>
+        <div class="stat-card paid">
+            <i class="fas fa-check-circle"></i>
+            <h3>156</h3>
+            <p>Invoices Paid</p>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <!-- Recent Invoices -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-file-invoice"></i> Recent Invoices</h2>
+                <button class="btn btn-primary" onclick="openCreateInvoiceModal()">
+                    <i class="fas fa-plus"></i> New Invoice
+                </button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Patient</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceTable">
+                    <tr>
+                        <td>INV-2026-001</td>
+                        <td>John Doe</td>
+                        <td>$1,250.00</td>
+                        <td>Mar 10, 2026</td>
+                        <td><span class="status-badge paid">Paid</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn view" onclick="viewInvoice(1)"><i class="fas fa-eye"></i></button>
+                                <button class="action-btn print"><i class="fas fa-print"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>INV-2026-002</td>
+                        <td>Jane Smith</td>
+                        <td>$850.00</td>
+                        <td>Mar 09, 2026</td>
+                        <td><span class="status-badge pending">Pending</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn view" onclick="viewInvoice(2)"><i class="fas fa-eye"></i></button>
+                                <button class="action-btn pay" onclick="openPaymentModal(2)"><i class="fas fa-credit-card"></i></button>
+                                <button class="action-btn print"><i class="fas fa-print"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>INV-2026-003</td>
+                        <td>Michael Johnson</td>
+                        <td>$2,100.00</td>
+                        <td>Mar 08, 2026</td>
+                        <td><span class="status-badge overdue">Overdue</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn view" onclick="viewInvoice(3)"><i class="fas fa-eye"></i></button>
+                                <button class="action-btn pay" onclick="openPaymentModal(3)"><i class="fas fa-credit-card"></i></button>
+                                <button class="action-btn print"><i class="fas fa-print"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>INV-2026-004</td>
+                        <td>Sarah Williams</td>
+                        <td>$450.00</td>
+                        <td>Mar 07, 2026</td>
+                        <td><span class="status-badge partial">Partial</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn view" onclick="viewInvoice(4)"><i class="fas fa-eye"></i></button>
+                                <button class="action-btn pay" onclick="openPaymentModal(4)"><i class="fas fa-credit-card"></i></button>
+                                <button class="action-btn print"><i class="fas fa-print"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>INV-2026-005</td>
+                        <td>Robert Brown</td>
+                        <td>$1,800.00</td>
+                        <td>Mar 06, 2026</td>
+                        <td><span class="status-badge paid">Paid</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn view" onclick="viewInvoice(5)"><i class="fas fa-eye"></i></button>
+                                <button class="action-btn print"><i class="fas fa-print"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>INV-2026-006</td>
+                        <td>Emily Clark</td>
+                        <td>$3,200.00</td>
+                        <td>Mar 05, 2026</td>
+                        <td><span class="status-badge pending">Pending</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn view" onclick="viewInvoice(6)"><i class="fas fa-eye"></i></button>
+                                <button class="action-btn pay" onclick="openPaymentModal(6)"><i class="fas fa-credit-card"></i></button>
+                                <button class="action-btn print"><i class="fas fa-print"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Payment Methods & Quick Stats -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-credit-card"></i> Payment Methods</h2>
+                </div>
+                <div class="payment-methods">
+                    <div class="payment-method selected">
+                        <i class="fas fa-credit-card"></i>
+                        <div>
+                            <h4>Credit/Debit Card</h4>
+                            <p>Visa, MasterCard, Amex</p>
+                        </div>
+                    </div>
+                    <div class="payment-method">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <div>
+                            <h4>Cash</h4>
+                            <p>Pay at counter</p>
+                        </div>
+                    </div>
+                    <div class="payment-method">
+                        <i class="fas fa-university"></i>
+                        <div>
+                            <h4>Bank Transfer</h4>
+                            <p>Direct bank payment</p>
+                        </div>
+                    </div>
+                    <div class="payment-method">
+                        <i class="fab fa-paypal"></i>
+                        <div>
+                            <h4>PayPal</h4>
+                            <p>Online payment</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-pie"></i> Quick Stats</h2>
+                </div>
+                <div class="quick-stats">
+                    <div class="quick-stat">
+                        <span>Today's Collection</span>
+                        <span>$8,450</span>
+                    </div>
+                    <div class="quick-stat">
+                        <span>This Week</span>
+                        <span>$42,300</span>
+                    </div>
+                    <div class="quick-stat">
+                        <span>Insurance Claims</span>
+                        <span>$65,200</span>
+                    </div>
+                    <div class="quick-stat">
+                        <span>Avg. Invoice Amount</span>
+                        <span>$1,250</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Invoice Modal -->
+    <div class="modal" id="viewInvoiceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-invoice"></i> Invoice Details</h2>
+                <button class="close-btn" onclick="closeModal('viewInvoiceModal')">&times;</button>
+            </div>
+            <div class="invoice-details">
+                <div class="invoice-header">
+                    <div>
+                        <h3>HMS Hospital</h3>
+                        <p>123 Medical Center Drive</p>
+                        <p>Healthcare City, HC 12345</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <h3 id="invoiceNumber">INV-2026-001</h3>
+                        <p id="invoiceDate">March 10, 2026</p>
+                    </div>
+                </div>
+                <p><strong>Bill To:</strong> <span id="invoicePatient">John Doe</span></p>
+                <div class="invoice-items">
+                    <div class="invoice-item">
+                        <span>Consultation Fee</span>
+                        <span>$150.00</span>
+                    </div>
+                    <div class="invoice-item">
+                        <span>Laboratory Tests</span>
+                        <span>$350.00</span>
+                    </div>
+                    <div class="invoice-item">
+                        <span>Medications</span>
+                        <span>$250.00</span>
+                    </div>
+                    <div class="invoice-item">
+                        <span>Radiology Services</span>
+                        <span>$500.00</span>
+                    </div>
+                </div>
+                <div class="invoice-total">
+                    <span>Total Amount</span>
+                    <span id="invoiceTotal">$1,250.00</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn btn-primary"><i class="fas fa-print"></i> Print</button>
+                <button class="btn btn-success"><i class="fas fa-download"></i> Download PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-credit-card"></i> Process Payment</h2>
+                <button class="close-btn" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <div class="invoice-details" style="margin-bottom: 1rem;">
+                <p><strong>Invoice:</strong> <span id="paymentInvoice">INV-2026-002</span></p>
+                <p><strong>Amount Due:</strong> <span id="paymentAmount" style="color: var(--primary); font-size: 1.5rem;">$850.00</span></p>
+            </div>
+            
+            <!-- Payment Method Selection -->
+            <div class="payment-method-options">
+                <div class="payment-option active" onclick="selectPaymentMethod('card', this)">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Credit/Debit Card</span>
+                </div>
+                <div class="payment-option" onclick="selectPaymentMethod('cash', this)">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Cash</span>
+                </div>
+                <div class="payment-option" onclick="selectPaymentMethod('bank', this)">
+                    <i class="fas fa-university"></i>
+                    <span>Bank Transfer</span>
+                </div>
+                <div class="payment-option" onclick="selectPaymentMethod('paypal', this)">
+                    <i class="fab fa-paypal"></i>
+                    <span>PayPal</span>
+                </div>
+            </div>
+            
+            <div class="payment-form-container">
+                <!-- Credit/Debit Card Form -->
+                <div class="payment-form active" id="cardForm">
+                    <form onsubmit="processCardPayment(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-credit-card"></i> Card Number</label>
+                                <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar"></i> Expiry Date</label>
+                                <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-lock"></i> CVV</label>
+                                <input type="password" id="cardCvv" placeholder="123" maxlength="4" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Name on Card</label>
+                            <input type="text" id="cardName" placeholder="John Doe" required>
+                        </div>
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                            <button type="button" class="btn btn-warning" onclick="closeModal('paymentModal')">Cancel</button>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-lock"></i> Pay Securely</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Cash Payment Form -->
+                <div class="payment-form" id="cashForm">
+                    <div class="cash-receipt">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <h3>Cash Payment</h3>
+                        <p>Please collect the cash amount from the patient at the counter.</p>
+                    </div>
+                    <form onsubmit="processCashPayment(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-dollar-sign"></i> Amount Received</label>
+                                <input type="number" id="cashReceived" placeholder="Enter amount received" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-exchange-alt"></i> Change Due</label>
+                                <input type="text" id="changeDue" placeholder="$0.00" readonly style="background: rgba(0,0,0,0.3);">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-receipt"></i> Receipt Number</label>
+                            <input type="text" id="receiptNumber" value="RCP-2026-001" readonly style="background: rgba(0,0,0,0.3);">
+                        </div>
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                            <button type="button" class="btn btn-warning" onclick="closeModal('paymentModal')">Cancel</button>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Confirm Cash Payment</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Bank Transfer Form -->
+                <div class="payment-form" id="bankForm">
+                    <div class="bank-details">
+                        <h4 style="margin-bottom: 1rem; color: var(--primary);"><i class="fas fa-university"></i> Bank Account Details</h4>
+                        <p><span>Bank Name:</span> <span>City National Bank</span></p>
+                        <p><span>Account Name:</span> <span>Hospital Management System</span></p>
+                        <p><span>Account Number:</span> <span>1234567890</span></p>
+                        <p><span>Routing Number:</span> <span>021000021</span></p>
+                        <p><span>SWIFT Code:</span> <span>CITIUS33</span></p>
+                    </div>
+                    <form onsubmit="processBankTransfer(event)">
+                        <div class="form-group">
+                            <label><i class="fas fa-hashtag"></i> Transaction Reference Number</label>
+                            <input type="text" id="bankRefNumber" placeholder="Enter bank transaction reference" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-alt"></i> Transfer Date</label>
+                                <input type="date" id="bankTransferDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-university"></i> Sender's Bank</label>
+                                <input type="text" id="senderBank" placeholder="Enter bank name" required>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                            <button type="button" class="btn btn-warning" onclick="closeModal('paymentModal')">Cancel</button>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Confirm Transfer</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- PayPal Form -->
+                <div class="payment-form" id="paypalForm">
+                    <div style="text-align: center; padding: 1rem;">
+                        <i class="fab fa-paypal" style="font-size: 4rem; color: #0070ba; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem;">Pay with PayPal</h3>
+                        <p style="color: #888; margin-bottom: 1.5rem;">You will be redirected to PayPal to complete your payment securely.</p>
+                    </div>
+                    <form onsubmit="processPayPalPayment(event)">
+                        <div class="form-group">
+                            <label><i class="fas fa-envelope"></i> PayPal Email (Optional)</label>
+                            <input type="email" id="paypalEmail" placeholder="your-email@example.com">
+                        </div>
+                        <button type="submit" class="btn paypal-btn">
+                            <i class="fab fa-paypal"></i> Pay with PayPal
+                        </button>
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                            <button type="button" class="btn btn-warning" onclick="closeModal('paymentModal')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Invoice Modal -->
+    <div class="modal" id="createInvoiceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus"></i> Create New Invoice</h2>
+                <button class="close-btn" onclick="closeModal('createInvoiceModal')">&times;</button>
+            </div>
+            <form onsubmit="createInvoice(event)">
+                <div class="form-group">
+                    <label>Patient</label>
+                    <select required>
+                        <option value="">Select Patient</option>
+                        <option value="1">John Doe</option>
+                        <option value="2">Jane Smith</option>
+                        <option value="3">Michael Johnson</option>
+                        <option value="4">Sarah Williams</option>
+                        <option value="5">Robert Brown</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Service Type</label>
+                        <select required>
+                            <option value="">Select Service</option>
+                            <option value="consultation">Consultation</option>
+                            <option value="lab">Laboratory Tests</option>
+                            <option value="radiology">Radiology</option>
+                            <option value="pharmacy">Pharmacy</option>
+                            <option value="surgery">Surgery</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount ($)</label>
+                        <input type="number" placeholder="0.00" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" placeholder="Enter description">
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-warning" onclick="closeModal('createInvoiceModal')">Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Create Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentInvoiceAmount = 850.00;
+        
+        function viewInvoice(id) {
+            document.getElementById('viewInvoiceModal').classList.add('active');
+        }
+
+        function openPaymentModal(id) {
+            // Reset to card payment by default
+            resetPaymentForms();
+            selectPaymentMethodByName('card');
+            document.getElementById('paymentModal').classList.add('active');
+        }
+
+        function openCreateInvoiceModal() {
+            document.getElementById('createInvoiceModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        function resetPaymentForms() {
+            // Clear all form inputs
+            document.querySelectorAll('#paymentModal input').forEach(input => {
+                if (input.type !== 'button' && input.type !== 'submit') {
+                    if (!input.readOnly) {
+                        input.value = '';
+                    }
+                }
+            });
+        }
+
+        // Payment method selection by clicking on option
+        function selectPaymentMethod(method, element) {
+            console.log('selectPaymentMethod called with:', method);
+            
+            // Update active state on payment options
+            const allOptions = document.querySelectorAll('.payment-option');
+            console.log('Found payment options:', allOptions.length);
+            allOptions.forEach(opt => opt.classList.remove('active'));
+            
+            if (element) {
+                element.classList.add('active');
+                console.log('Added active class to element');
+            }
+            
+            // Show corresponding form
+            const allForms = document.querySelectorAll('.payment-form');
+            console.log('Found payment forms:', allForms.length);
+            allForms.forEach(form => {
+                form.classList.remove('active');
+                form.style.display = 'none';
+            });
+            
+            const formElement = document.getElementById(method + 'Form');
+            console.log('Target form element:', method + 'Form', formElement);
+            if (formElement) {
+                formElement.classList.add('active');
+                formElement.style.display = 'block';
+                console.log('Form displayed:', method + 'Form');
+            }
+        }
+        
+        // Payment method selection by name (for programmatic calls)
+        function selectPaymentMethodByName(method) {
+            console.log('selectPaymentMethodByName called with:', method);
+            const index = method === 'card' ? 0 : method === 'cash' ? 1 : method === 'bank' ? 2 : 3;
+            const options = document.querySelectorAll('.payment-option');
+            
+            // Update active state on payment options
+            options.forEach(opt => opt.classList.remove('active'));
+            if (options[index]) {
+                options[index].classList.add('active');
+            }
+            
+            // Show corresponding form
+            const allForms = document.querySelectorAll('.payment-form');
+            allForms.forEach(form => {
+                form.classList.remove('active');
+                form.style.display = 'none';
+            });
+            
+            const formElement = document.getElementById(method + 'Form');
+            if (formElement) {
+                formElement.classList.add('active');
+                formElement.style.display = 'block';
+            }
+        }
+        
+        // Initialize event listeners when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Card number formatting
+            const cardNumberInput = document.getElementById('cardNumber');
+            if (cardNumberInput) {
+                cardNumberInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+                    let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                    e.target.value = formatted;
+                });
+            }
+            
+            // Expiry date formatting
+            const cardExpiryInput = document.getElementById('cardExpiry');
+            if (cardExpiryInput) {
+                cardExpiryInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substring(0, 2) + '/' + value.substring(2);
+                    }
+                    e.target.value = value;
+                });
+            }
+            
+            // Cash payment - calculate change
+            const cashReceivedInput = document.getElementById('cashReceived');
+            if (cashReceivedInput) {
+                cashReceivedInput.addEventListener('input', function(e) {
+                    const received = parseFloat(e.target.value) || 0;
+                    const change = received - currentInvoiceAmount;
+                    document.getElementById('changeDue').value = change >= 0 ? '$' + change.toFixed(2) : 'Insufficient';
+                });
+            }
+        });
+
+        function processCardPayment(e) {
+            e.preventDefault();
+            const cardNumber = document.getElementById('cardNumber').value;
+            const lastFour = cardNumber.replace(/\s/g, '').slice(-4);
+            
+            // Simulate processing
+            showPaymentSuccess('Card Payment', `Card ending in ${lastFour}`);
+        }
+        
+        function processCashPayment(e) {
+            e.preventDefault();
+            const received = parseFloat(document.getElementById('cashReceived').value);
+            if (received < currentInvoiceAmount) {
+                alert('Insufficient amount received!');
+                return;
+            }
+            const change = (received - currentInvoiceAmount).toFixed(2);
+            showPaymentSuccess('Cash Payment', `Change due: $${change}`);
+        }
+        
+        function processBankTransfer(e) {
+            e.preventDefault();
+            const refNumber = document.getElementById('bankRefNumber').value;
+            showPaymentSuccess('Bank Transfer', `Reference: ${refNumber}`);
+        }
+        
+        function processPayPalPayment(e) {
+            e.preventDefault();
+            // Simulate PayPal redirect
+            showPaymentSuccess('PayPal Payment', 'Transaction completed via PayPal');
+        }
+        
+        function showPaymentSuccess(method, details) {
+            // Create success notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #1a1a2e, #16213e);
+                border: 2px solid var(--success);
+                border-radius: 15px;
+                padding: 2rem;
+                text-align: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            `;
+            notification.innerHTML = `
+                <i class="fas fa-check-circle" style="font-size: 4rem; color: var(--success); margin-bottom: 1rem;"></i>
+                <h2 style="color: var(--success); margin-bottom: 0.5rem;">Payment Successful!</h2>
+                <p style="color: #888; margin-bottom: 0.5rem;">${method}</p>
+                <p style="color: var(--primary);">${details}</p>
+                <p style="margin-top: 1rem; color: #fff;">Amount: $${currentInvoiceAmount.toFixed(2)}</p>
+                <button onclick="this.parentElement.remove(); closeModal('paymentModal');" class="btn btn-success" style="margin-top: 1.5rem;">
+                    <i class="fas fa-check"></i> Done
+                </button>
+            `;
+            document.body.appendChild(notification);
+        }
+
+        function processPayment(e) {
+            e.preventDefault();
+            alert('Payment processed successfully!');
+            closeModal('paymentModal');
+        }
+
+        function createInvoice(e) {
+            e.preventDefault();
+            alert('Invoice created successfully!');
+            closeModal('createInvoiceModal');
+        }
+
+        // Payment method selection on sidebar
+        document.querySelectorAll('.payment-method').forEach(method => {
+            method.addEventListener('click', () => {
+                document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+                method.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>

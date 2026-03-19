@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Doctor - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --success: #00f5a0;
+            --danger: #ff006e;
+            --dark: #0f1419;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated background orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -10%;
+            right: -5%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 245, 160, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -10%;
+            left: -5%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob-reverse 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        @keyframes float-blob {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            33% { transform: translateY(-60px) translateX(40px); }
+            66% { transform: translateY(40px) translateX(-40px); }
+        }
+
+        @keyframes float-blob-reverse {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            33% { transform: translateY(60px) translateX(-40px); }
+            66% { transform: translateY(-40px) translateX(40px); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            z-index: 10;
+            position: relative;
+        }
+        .form-card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.95) 0%, rgba(26, 31, 46, 0.95) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .form-card h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        button {
+            flex: 1;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: var(--gradient-blue);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        button:active::before {
+            animation: ripple 0.6s ease-out;
+        }
+        @keyframes ripple {
+            to {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
+            }
+        }
+        .btn-cancel {
+            background: transparent;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--primary);
+        }
+        .btn-cancel:hover {
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-card">
+            <h1><i class="fas fa-user-plus"></i> Add Doctor</h1>
+            
+            <form action="/hospital/doctor/save" method="POST">
+                <input type="hidden" name="_csrf" th:value="${_csrf?.token}">
+                
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" name="firstName" required placeholder="John">
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" name="lastName" required placeholder="Doe">
+                </div>
+
+                <div class="form-group">
+                    <label for="specialization">Specialization *</label>
+                    <select id="specialization" name="specialization" required>
+                        <option value="">Select Specialization</option>
+                        <option value="Cardiology">Cardiology</option>
+                        <option value="Neurology">Neurology</option>
+                        <option value="Orthopedics">Orthopedics</option>
+                        <option value="Pediatrics">Pediatrics</option>
+                        <option value="General Practice">General Practice</option>
+                        <option value="Surgery">Surgery</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneNumber">Phone *</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required placeholder="1234567890">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required placeholder="doctor@hospital.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="licenseNumber">License Number *</label>
+                    <input type="text" id="licenseNumber" name="licenseNumber" required placeholder="License #">
+                </div>
+
+                <div class="form-group">
+                    <label for="yearsOfExperience">Years of Experience</label>
+                    <input type="text" id="yearsOfExperience" name="yearsOfExperience" placeholder="10">
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <input type="text" id="department" name="department" placeholder="Department">
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" name="address" placeholder="Address">
+                </div>
+
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" placeholder="City">
+                </div>
+
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <input type="text" id="state" name="state" placeholder="State">
+                </div>
+
+                <div class="form-group">
+                    <label for="zipCode">Zip Code</label>
+                    <input type="text" id="zipCode" name="zipCode" placeholder="Zip Code">
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit"><i class="fas fa-save"></i> Add Doctor</button>
+                    <a href="/hospital/doctor/list" class="btn-cancel"><i class="fas fa-times"></i> Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

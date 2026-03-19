@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Management - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --success: #00f5a0;
+            --danger: #ff006e;
+            --warning: #ffd60a;
+            --dark: #0f1419;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background orbs - purple accent */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 20%;
+            left: 8%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-orb-purple 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+            filter: blur(40px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 15%;
+            right: 8%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(0, 245, 160, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-orb-green 12s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+            filter: blur(40px);
+        }
+
+        @keyframes float-orb-purple {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-60px) translateX(40px); }
+        }
+
+        @keyframes float-orb-green {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(60px) translateX(-40px); }
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.2rem;
+            border: 2px solid var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+            color: var(--primary);
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(5px);
+        }
+        .btn:hover {
+            background: var(--gradient-blue);
+            color: white;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4);
+            border-color: transparent;
+        }
+        .btn.success { border-color: var(--success); color: var(--success); }
+        .btn.success:hover { background: var(--success); color: #000; }
+        .btn.danger { border-color: var(--danger); color: var(--danger); }
+        .btn.danger:hover { background: var(--danger); color: white; }
+        .btn.small { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+
+        .table-section {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(0, 212, 255, 0.1);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            color: #ccc;
+        }
+
+        tbody tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .actions .btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--primary);
+            opacity: 0.5;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-scheduled {
+            background: rgba(0, 245, 160, 0.2);
+            color: var(--success);
+        }
+
+        .status-completed {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--primary);
+        }
+
+        .status-cancelled {
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-calendar-check"></i> Appointment Management</h1>
+            <div class="header-actions">
+                <a th:href="@{/appointment/add}" class="btn success">
+                    <i class="fas fa-plus"></i> Add Appointment
+                </a>
+                <a th:href="@{/}" class="btn">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+
+        <!-- Appointments Table -->
+        <div class="table-section" th:if="${appointments != null and appointments.size() > 0}">
+            <table>
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-id-badge"></i> ID</th>
+                        <th><i class="fas fa-user"></i> Patient</th>
+                        <th><i class="fas fa-stethoscope"></i> Doctor</th>
+                        <th><i class="fas fa-calendar"></i> Date & Time</th>
+                        <th><i class="fas fa-hourglass-half"></i> Consultation Expiry</th>
+                        <th><i class="fas fa-redo"></i> Follow-up</th>
+                        <th><i class="fas fa-shield"></i> Status</th>
+                        <th><i class="fas fa-cog"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="appointment : ${appointments}">
+                        <td th:text="${appointment.appointmentId}" style="font-weight: bold; color: var(--primary);"></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 35px; height: 35px; background: rgba(0, 212, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                                    <i class="fas fa-user-injured"></i>
+                                </div>
+                                <span th:text="${appointment.patient?.firstName + ' ' + appointment.patient?.lastName}" style="font-weight: 500; color: #fff;"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 35px; height: 35px; background: rgba(0, 245, 160, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--success);">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <span th:text="${appointment.doctor?.firstName + ' ' + appointment.doctor?.lastName}" style="font-weight: 500; color: #fff;"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="color: #00d4ff; font-weight: 500;">
+                                <i class="far fa-calendar-alt" style="margin-right: 5px;"></i>
+                                <span th:text="${#temporals.format(appointment.appointmentDateTime, 'dd MMM yyyy')}"></span>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #888;">
+                                <i class="far fa-clock" style="margin-right: 5px;"></i>
+                                <span th:text="${#temporals.format(appointment.appointmentDateTime, 'HH:mm')}"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="color: var(--danger); font-size: 0.9rem;">
+                                <i class="fas fa-hourglass-end" style="margin-right: 5px;"></i>
+                                <span th:text="${#temporals.format(appointment.consultationExpiryDate, 'dd MMM yyyy')}"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <div th:if="${appointment.followUpDate != null}" style="color: var(--warning); font-size: 0.9rem;">
+                                <i class="fas fa-calendar-check" style="margin-right: 5px;"></i>
+                                <span th:text="${#temporals.format(appointment.followUpDate, 'dd MMM yyyy')}"></span>
+                            </div>
+                            <span th:if="${appointment.followUpDate == null}" style="color: #555;">No follow-up</span>
+                        </td>
+                        <td>
+                            <span class="status-badge" th:classappend="${appointment.status == 'Completed' ? 'status-completed' : appointment.status == 'Cancelled' ? 'status-cancelled' : 'status-scheduled'}" th:text="${appointment.status}"></span>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a th:href="@{/appointment/view/{id}(id=${appointment.appointmentId})}" class="btn btn-small">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <a th:href="@{/appointment/edit/{id}(id=${appointment.appointmentId})}" class="btn btn-small">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" th:if="${appointments == null or appointments.size() == 0}">
+            <i class="fas fa-calendar-times"></i>
+            <h2>No Appointments Found</h2>
+            <p>No appointments have been scheduled yet. Create your first appointment to get started.</p>
+            <a th:href="@{/appointment/add}" class="btn success" style="margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Add Appointment
+            </a>
+        </div>
+    </div>
+</body>
+</html>

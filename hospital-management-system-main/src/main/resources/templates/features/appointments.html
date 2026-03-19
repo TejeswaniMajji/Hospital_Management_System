@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Scheduling - Hospital System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --success: #00f5a0;
+            --danger: #ff006e;
+            --warning: #ffd60a;
+            --dark: #0f1419;
+            --light: #f8f9fa;
+            --gradient-blue: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background orbs - purple accent */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 20%;
+            left: 8%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob 9s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 15%;
+            right: 8%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float-blob-reverse 11s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        @keyframes float-blob {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            33% { transform: translateY(-50px) translateX(40px); }
+            66% { transform: translateY(30px) translateX(-30px); }
+        }
+
+        @keyframes float-blob-reverse {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            33% { transform: translateY(50px) translateX(-40px); }
+            66% { transform: translateY(-30px) translateX(30px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-card {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .form-card h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #b0b0b0;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 212, 255, 0.05) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            color: #00f5a0;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: rgba(0, 212, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--gradient-blue);
+            transform: translateY(-2px);
+        }
+
+        .appointments-list {
+            background: linear-gradient(135deg, rgba(15, 20, 25, 0.8) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .appointments-list h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .appointment-item {
+            background: rgba(0, 212, 255, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .appointment-info {
+            flex: 1;
+        }
+
+        .appointment-patient {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.3rem;
+        }
+
+        .appointment-details {
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .appointment-status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status.scheduled {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--primary);
+        }
+
+        .status.completed {
+            background: rgba(0, 245, 160, 0.2);
+            color: var(--success);
+        }
+
+        .status.cancelled {
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--danger);
+        }
+
+        .appointment-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            border: 1px solid var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .appointment-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .appointment-actions {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-calendar-alt"></i> Appointment Scheduling</h1>
+                <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                    <a th:href="@{/appointment/add}" class="btn" style="width: auto; padding: 0.6rem 1.2rem; background: var(--gradient-blue); color: white; border: none;">
+                        <i class="fas fa-calendar-plus"></i> Schedule New Appointment
+                    </a>
+                </div>
+            </div>
+            <a href="/hospital/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="content-grid" style="grid-template-columns: 1fr;">
+            <div class="appointments-list">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin-bottom: 0;"><i class="fas fa-list"></i> Appointment Management</h3>
+                    <a th:href="@{/appointment/list}" class="btn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;">
+                        <i class="fas fa-list-ul"></i> View All Appointments & Database
+                    </a>
+                </div>
+
+                <div class="appointment-item">
+                    <div class="appointment-info">
+                        <div class="appointment-patient">John Smith</div>
+                        <div class="appointment-details">
+                            <i class="fas fa-user-md"></i> Dr. James Anderson (Cardiology)
+                        </div>
+                        <div class="appointment-details">
+                            <i class="fas fa-clock"></i> 09:30 AM - 10:00 AM
+                        </div>
+                        <div class="appointment-details">
+                            <i class="fas fa-stethoscope"></i> General Checkup
+                        </div>
+                    </div>
+                    <div class="appointment-actions">
+                        <span class="appointment-status status scheduled">Scheduled</span>
+                    </div>
+                </div>
+
+                <div class="appointment-item">
+                    <div class="appointment-info">
+                        <div class="appointment-patient">Sarah Johnson</div>
+                        <div class="appointment-details">
+                            <i class="fas fa-user-md"></i> Dr. Sarah Mitchell (Pediatrics)
+                        </div>
+                        <div class="appointment-details">
+                            <i class="fas fa-clock"></i> 10:30 AM - 11:00 AM
+                        </div>
+                        <div class="appointment-details">
+                            <i class="fas fa-stethoscope"></i> Child Vaccination
+                        </div>
+                    </div>
+                    <div class="appointment-actions">
+                        <span class="appointment-status status scheduled">Scheduled</span>
+                    </div>
+                </div>
+
+                <div class="appointment-item">
+                    <div class="appointment-info">
+                        <div class="appointment-patient">Michael Brown</div>
+                        <div class="appointment-details">
+                            <i class="fas fa-user-md"></i> Dr. Michael Chen (Orthopedics)
+                        </div>
+                        <div class="appointment-details">
+                            <i class="fas fa-clock"></i> 02:00 PM - 02:30 PM
+                        </div>
+                        <div class="appointment-details">
+                            <i class="fas fa-stethoscope"></i> Knee Pain Consultation
+                        </div>
+                    </div>
+                    <div class="appointment-actions">
+                        <span class="appointment-status status scheduled">Scheduled</span>
+                    </div>
+                </div>
+
+                <div class="appointment-item">
+                    <div class="appointment-info">
+                        <div class="appointment-patient">Lisa Chen</div>
+                        <div class="appointment-details">
+                            <i class="fas fa-user-md"></i> Dr. Emily Rodriguez (Neurology)
+                        </div>
+                        <div class="appointment-details">
+                            <i class="fas fa-clock"></i> 03:30 PM - 04:00 PM
+                        </div>
+                        <div class="appointment-details">
+                            <i class="fas fa-stethoscope"></i> Migraine Treatment
+                        </div>
+                    </div>
+                    <div class="appointment-actions">
+                        <span class="appointment-status status completed">Completed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
