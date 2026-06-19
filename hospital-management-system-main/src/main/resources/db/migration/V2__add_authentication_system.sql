@@ -25,13 +25,13 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT fk_user_patient FOREIGN KEY (patient_id) REFERENCES patients(patient_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_username ON users(username);
-CREATE INDEX IF NOT EXISTS idx_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_role ON users(role);
-CREATE INDEX IF NOT EXISTS idx_status ON users(status);
-CREATE INDEX IF NOT EXISTS idx_user_role_status ON users(role, status);
-CREATE INDEX IF NOT EXISTS idx_user_created_at ON users(created_at);
-CREATE INDEX IF NOT EXISTS idx_user_last_login ON users(last_login);
+CREATE INDEX idx_username ON users(username);
+CREATE INDEX idx_email ON users(email);
+CREATE INDEX idx_role ON users(role);
+CREATE INDEX idx_status ON users(status);
+CREATE INDEX idx_user_role_status ON users(role, status);
+CREATE INDEX idx_user_created_at ON users(created_at);
+CREATE INDEX idx_user_last_login ON users(last_login);
 
 -- Reference table for available roles
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -61,9 +61,9 @@ CREATE TABLE IF NOT EXISTS user_audit_log (
     CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_audit ON user_audit_log(user_id);
-CREATE INDEX IF NOT EXISTS idx_action ON user_audit_log(action);
-CREATE INDEX IF NOT EXISTS idx_audit_created_at ON user_audit_log(created_at);
+CREATE INDEX idx_user_audit ON user_audit_log(user_id);
+CREATE INDEX idx_action ON user_audit_log(action);
+CREATE INDEX idx_audit_created_at ON user_audit_log(created_at);
 
 -- Fine-grained permission mapping per role
 CREATE TABLE IF NOT EXISTS user_permissions (
