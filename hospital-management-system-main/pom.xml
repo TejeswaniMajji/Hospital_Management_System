@@ -85,6 +85,13 @@
             <artifactId>flyway-core</artifactId>
         </dependency>
 
+        <!-- Flyway 10+ moved MySQL support out of flyway-core into this module -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Thymeleaf Template Engine -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
