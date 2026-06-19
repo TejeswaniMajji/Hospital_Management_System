@@ -84,7 +84,7 @@ jobs:
       - name: Boot app against real MySQL, confirm Flyway migrates and the app responds
         env:
           SPRING_PROFILES_ACTIVE: mysql
-          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/hospital_db
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/hospital_db?allowPublicKeyRetrieval=true&useSSL=false
           SPRING_DATASOURCE_USERNAME: hospital_user
           SPRING_DATASOURCE_PASSWORD: hospital_pass
         run: |
