@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
@@ -42,11 +43,15 @@ public class SecurityConfig {
      * Defines URL access rules, login flow, logout handling, and CSRF protection
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         // Authorization rules using Spring Security 6 API with Lambda DSL
         http.authorizeHttpRequests(authorize -> authorize
             // Public endpoints - accessible without authentication
             .requestMatchers(new AntPathRequestMatcher("/auth/**")).permitAll()
+            // JWT login for stateless REST API clients (issues the token; everything else under
+            // /api/** still falls through to anyRequest().authenticated() below, which accepts
+            // EITHER a session cookie OR a valid JWT set by JwtAuthenticationFilter)
+            .requestMatchers(new AntPathRequestMatcher("/api/auth/login", "POST")).permitAll()
             .requestMatchers(new AntPathRequestMatcher("/css/**"), new AntPathRequestMatcher("/js/**"), 
                            new AntPathRequestMatcher("/images/**")).permitAll()
             .requestMatchers(new AntPathRequestMatcher("/error"), new AntPathRequestMatcher("/error/**")).permitAll()
@@ -86,7 +91,11 @@ public class SecurityConfig {
                                     new AntPathRequestMatcher("/features/**"))
         )
         // Headers configuration for H2 console
-        .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+        .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+        // JWT filter runs ahead of session-based auth but only acts when no
+        // authentication is already present (see JwtAuthenticationFilter) - additive,
+        // not a replacement for the existing form-login/session flow.
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
