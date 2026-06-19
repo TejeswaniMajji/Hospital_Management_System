@@ -4,6 +4,7 @@ import com.hospital.model.Inventory;
 import com.hospital.service.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,11 +16,13 @@ public class InventoryApiController {
     @Autowired
     private InventoryService inventoryService;
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @GetMapping
     public List<Inventory> list() {
         return inventoryService.listAll();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @GetMapping("/{id}")
     public ResponseEntity<Inventory> get(@PathVariable Long id) {
         return inventoryService.findById(id)
@@ -27,12 +30,14 @@ public class InventoryApiController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Inventory> create(@RequestBody Inventory inv) {
         Inventory saved = inventoryService.save(inv);
         return ResponseEntity.ok(saved);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Inventory> update(@PathVariable Long id, @RequestBody Inventory inv) {
         return inventoryService.findById(id)
@@ -50,12 +55,14 @@ public class InventoryApiController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         inventoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/adjust")
     public ResponseEntity<Inventory> adjust(@PathVariable Long id, @RequestParam int delta) {
         try {

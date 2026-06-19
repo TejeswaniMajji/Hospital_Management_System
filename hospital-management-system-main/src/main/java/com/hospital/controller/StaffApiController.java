@@ -4,16 +4,20 @@ import com.hospital.model.HospitalStaff;
 import com.hospital.service.HospitalStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Staff REST API Controller - Handles staff-related API requests for AJAX calls
+ * Staff REST API Controller - Handles staff-related API requests for AJAX calls.
+ * Staff records are back-office/HR data - no role besides ADMIN has any staff
+ * permission in the user_permissions matrix, so the whole controller is admin-only.
  */
 @RestController
 @RequestMapping("/api/staff")
+@PreAuthorize("hasRole('ADMIN')")
 public class StaffApiController {
 
     @Autowired

@@ -7,6 +7,7 @@ import com.hospital.service.PatientService;
 import com.hospital.repository.DoctorRepository;
 import com.hospital.repository.AppointmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,7 @@ public class PatientController {
     @Autowired
     private AppointmentRepository appointmentRepository;
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @GetMapping("/list")
     public String listPatients(Model model) {
         List<Patient> patients = patientService.getAllPatients();
@@ -40,12 +42,14 @@ public class PatientController {
         return "patient/list";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @GetMapping("/add")
     public String showAddForm(Model model) {
         model.addAttribute("patient", new Patient());
         return "patient/add";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @PostMapping("/save")
     public String savePatient(@ModelAttribute Patient patient) {
         patient.setRegistrationDate(LocalDate.now());
@@ -54,6 +58,7 @@ public class PatientController {
         return "redirect:/patient/list";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         Optional<Patient> patient = patientService.getPatientById(id);
@@ -64,12 +69,14 @@ public class PatientController {
         return "redirect:/patient/list";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @PostMapping("/update")
     public String updatePatient(@ModelAttribute Patient patient) {
         patientService.updatePatient(patient);
         return "redirect:/patient/list";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/delete/{id}")
     public String deletePatient(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         patientService.deletePatient(id);
@@ -79,6 +86,7 @@ public class PatientController {
 
 
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @PostMapping("/search")
     public String searchPatient(@RequestParam String searchType, @RequestParam String searchValue, Model model) {
         List<Patient> results = null;

@@ -7,6 +7,7 @@ import com.hospital.service.AppointmentService;
 import com.hospital.service.DoctorService;
 import com.hospital.service.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -55,6 +56,7 @@ public class AppointmentController {
         return "redirect:/appointment/list";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         Optional<Appointment> appointment = appointmentService.getAppointmentById(id);
@@ -69,12 +71,14 @@ public class AppointmentController {
         return "redirect:/appointment/list";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @PostMapping("/update")
     public String updateAppointment(@ModelAttribute Appointment appointment) {
         appointmentService.updateAppointment(appointment);
         return "redirect:/appointment/list";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @GetMapping("/delete/{id}")
     public String deleteAppointment(@PathVariable Long id) {
         appointmentService.deleteAppointment(id);

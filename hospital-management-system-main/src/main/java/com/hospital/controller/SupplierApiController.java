@@ -4,6 +4,7 @@ import com.hospital.model.Supplier;
 import com.hospital.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -14,10 +15,14 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Supplier REST API Controller - Handles supplier-related API requests
+ * Supplier REST API Controller - Handles supplier-related API requests.
+ * Procurement/vendor data is back-office only - no role besides ADMIN has any
+ * supplier permission in the user_permissions matrix, so the whole controller
+ * is admin-only.
  */
 @RestController
 @RequestMapping("/api/suppliers")
+@PreAuthorize("hasRole('ADMIN')")
 public class SupplierApiController {
 
     @Autowired

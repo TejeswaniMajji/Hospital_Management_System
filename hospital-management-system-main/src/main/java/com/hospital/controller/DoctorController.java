@@ -3,6 +3,7 @@ package com.hospital.controller;
 import com.hospital.model.Doctor;
 import com.hospital.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ public class DoctorController {
         return "doctor/add";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/save")
     public String saveDoctor(@ModelAttribute Doctor doctor) {
         doctor.setStatus("Active");
@@ -49,12 +51,14 @@ public class DoctorController {
         return "redirect:/doctor/list";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/update")
     public String updateDoctor(@ModelAttribute Doctor doctor) {
         doctorService.updateDoctor(doctor);
         return "redirect:/doctor/list";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/delete/{id}")
     public String deleteDoctor(@PathVariable Long id) {
         doctorService.deleteDoctor(id);

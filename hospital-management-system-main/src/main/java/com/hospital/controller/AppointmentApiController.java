@@ -4,6 +4,7 @@ import com.hospital.model.Appointment;
 import com.hospital.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -90,6 +91,7 @@ public class AppointmentApiController {
     /**
      * Accept ALL pending/scheduled appointments at once
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @PutMapping("/accept-all")
     public ResponseEntity<Map<String, Object>> acceptAllAppointments() {
         List<Appointment> all = appointmentService.getAllAppointments();
@@ -111,6 +113,7 @@ public class AppointmentApiController {
     /**
      * Accept an appointment — sets status to "Accepted"
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @PutMapping("/{id}/accept")
     public ResponseEntity<Map<String, Object>> acceptAppointment(@PathVariable Long id) {
         Optional<Appointment> opt = appointmentService.getAppointmentById(id);
@@ -126,6 +129,7 @@ public class AppointmentApiController {
     /**
      * Reject an appointment — sets status to "Rejected"
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @PutMapping("/{id}/reject")
     public ResponseEntity<Map<String, Object>> rejectAppointment(@PathVariable Long id) {
         Optional<Appointment> opt = appointmentService.getAppointmentById(id);
@@ -141,6 +145,7 @@ public class AppointmentApiController {
     /**
      * Mark an appointment as Confirmed
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @PutMapping("/{id}/confirm")
     public ResponseEntity<Map<String, Object>> confirmAppointment(@PathVariable Long id) {
         Optional<Appointment> opt = appointmentService.getAppointmentById(id);
@@ -156,6 +161,7 @@ public class AppointmentApiController {
     /**
      * Delete an appointment
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteAppointment(@PathVariable Long id) {
         Optional<Appointment> opt = appointmentService.getAppointmentById(id);
@@ -173,6 +179,7 @@ public class AppointmentApiController {
     /**
      * Update appointment status generically
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','NURSE')")
     @PutMapping("/{id}/status")
     public ResponseEntity<Map<String, Object>> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         Optional<Appointment> opt = appointmentService.getAppointmentById(id);

@@ -4,6 +4,7 @@ import com.hospital.model.Prescription;
 import com.hospital.service.PrescriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -26,6 +27,7 @@ public class PrescriptionApiController {
     /**
      * Get all prescriptions
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','PATIENT')")
     @GetMapping
     public ResponseEntity<List<Prescription>> getAllPrescriptions() {
         return ResponseEntity.ok(prescriptionService.getAllPrescriptions());
@@ -34,6 +36,7 @@ public class PrescriptionApiController {
     /**
      * Get prescriptions by status (Pending, Dispensed, etc.)
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','PATIENT')")
     @GetMapping("/status/{status}")
     public ResponseEntity<List<Prescription>> getByStatus(@PathVariable String status) {
         return ResponseEntity.ok(prescriptionService.getPrescriptionsByStatus(status));
@@ -42,6 +45,7 @@ public class PrescriptionApiController {
     /**
      * Get a single prescription by Rx number
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','PATIENT')")
     @GetMapping("/rx/{rxNo}")
     public ResponseEntity<Prescription> getByRxNo(@PathVariable String rxNo) {
         Optional<Prescription> rx = prescriptionService.getPrescriptionByRxNo(rxNo);
@@ -52,6 +56,7 @@ public class PrescriptionApiController {
     /**
      * Get a single prescription by ID
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','PATIENT')")
     @GetMapping("/{id}")
     public ResponseEntity<Prescription> getById(@PathVariable Long id) {
         Optional<Prescription> rx = prescriptionService.getPrescriptionById(id);
@@ -62,6 +67,7 @@ public class PrescriptionApiController {
     /**
      * Create a new prescription
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR')")
     @PostMapping
     public ResponseEntity<Prescription> createPrescription(@RequestBody Map<String, String> payload) {
         Prescription rx = new Prescription();
@@ -88,6 +94,7 @@ public class PrescriptionApiController {
     /**
      * Update an existing prescription
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR')")
     @PutMapping("/rx/{rxNo}")
     public ResponseEntity<Prescription> updatePrescription(@PathVariable String rxNo, @RequestBody Map<String, String> payload) {
         Optional<Prescription> existingOpt = prescriptionService.getPrescriptionByRxNo(rxNo);
@@ -113,6 +120,7 @@ public class PrescriptionApiController {
     /**
      * Dispense a prescription (mark as Dispensed)
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR')")
     @PutMapping("/rx/{rxNo}/dispense")
     public ResponseEntity<Prescription> dispensePrescription(@PathVariable String rxNo) {
         Prescription dispensed = prescriptionService.dispensePrescription(rxNo);
@@ -125,6 +133,7 @@ public class PrescriptionApiController {
     /**
      * Delete a prescription by Rx number
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR')")
     @DeleteMapping("/rx/{rxNo}")
     public ResponseEntity<Map<String, String>> deletePrescription(@PathVariable String rxNo) {
         Optional<Prescription> rx = prescriptionService.getPrescriptionByRxNo(rxNo);
@@ -140,6 +149,7 @@ public class PrescriptionApiController {
     /**
      * Get prescription statistics
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','PATIENT')")
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Long>> getStats() {
         Map<String, Long> stats = new HashMap<>();
@@ -153,6 +163,7 @@ public class PrescriptionApiController {
     /**
      * Search prescriptions by patient name
      */
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','PATIENT')")
     @GetMapping("/search")
     public ResponseEntity<List<Prescription>> search(@RequestParam(required = false) String patient,
                                                       @RequestParam(required = false) String doctor) {

@@ -4,6 +4,7 @@ import com.hospital.model.Doctor;
 import com.hospital.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +41,7 @@ public class DoctorApiController {
     /**
      * Save new doctor
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/save")
     public ResponseEntity<Doctor> saveDoctor(@ModelAttribute Doctor doctor) {
         doctor.setStatus("Active");
@@ -50,6 +52,7 @@ public class DoctorApiController {
     /**
      * Update existing doctor
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/update")
     public ResponseEntity<Doctor> updateDoctor(@ModelAttribute Doctor doctor) {
         Doctor updatedDoctor = doctorService.updateDoctor(doctor);
@@ -59,6 +62,7 @@ public class DoctorApiController {
     /**
      * Delete doctor by ID
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteDoctor(@PathVariable Long id) {
         doctorService.deleteDoctor(id);
